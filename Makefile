@@ -20,6 +20,10 @@ SDL_H_REQ=$(foreach lib,$(SDL_LIBS),$(SDL_INCLUDE_DIR)/$(lib)/$(lib:SDL3%=SDL%).
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(SRCS) $(HEADERS) $(SDL_LIB_REQ) $(SDL_H_REQ)
 	@echo -------------------
+ifeq ($(wildcard path/$(var)/*),)
+	@echo create build directory
+	mkdir $(BUILD_DIR)
+endif
 	@echo Compiling...
 	gcc "$(SRC_DIR)/*.c" -o "$(BUILD_DIR)/$(TARGET_EXEC)" -L $(SDL_LIBS_DIR) -I $(SDL_INCLUDE_DIR) $(SDL_L_ARGS)
 	@echo -------------------
