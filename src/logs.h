@@ -57,16 +57,18 @@ int Logs_Log(int level, const char* module, const char* file, int line, const ch
 #define LogError(module, fmt, ...)                  Log(LOG_LEVEL_ERROR,  module, fmt, ##__VA_ARGS__)
 #define LogWarn(module, fmt, ...)                   Log(LOG_LEVEL_WARN,   module, fmt, ##__VA_ARGS__)
 #define LogInfo(module, fmt, ...)                   Log(LOG_LEVEL_INFO,   module, fmt, ##__VA_ARGS__)
+#define LogNotice(module, fmt, ...)                 Log(LOG_LEVEL_NOTICE, module, fmt, ##__VA_ARGS__)
 #define LogDebug(module, fmt, ...)                  Log(LOG_LEVEL_DEBUG,  module, fmt, ##__VA_ARGS__)
 #define LogTrace(module, fmt, ...)                  Log(LOG_LEVEL_TRACE,  module, fmt, ##__VA_ARGS__)
 #define LogCustom(level, color, module, fmt, ...)   Logs_LogCustom(level, color, module, __FILE__, __LINE__, fmt, ##__VA_ARGS__)
 
 #define Log_wf(level, module, fmt, ...)                Logs_Log(level, module, NULL, 0, fmt, ##__VA_ARGS__)
-#define LogError_wf(module, fmt, ...)                  Log(LOG_LEVEL_ERROR,  module, fmt, ##__VA_ARGS__)
-#define LogWarn_wf(module, fmt, ...)                   Log(LOG_LEVEL_WARN,   module, fmt, ##__VA_ARGS__)
-#define LogInfo_wf(module, fmt, ...)                   Log(LOG_LEVEL_INFO,   module, fmt, ##__VA_ARGS__)
-#define LogDebug_wf(module, fmt, ...)                  Log(LOG_LEVEL_DEBUG,  module, fmt, ##__VA_ARGS__)
-#define LogTrace_wf(module, fmt, ...)                  Log(LOG_LEVEL_TRACE,  module, fmt, ##__VA_ARGS__)
+#define LogError_wf(module, fmt, ...)                  Log_wf(LOG_LEVEL_ERROR,  module, fmt, ##__VA_ARGS__)
+#define LogWarn_wf(module, fmt, ...)                   Log_wf(LOG_LEVEL_WARN,   module, fmt, ##__VA_ARGS__)
+#define LogInfo_wf(module, fmt, ...)                   Log_wf(LOG_LEVEL_INFO,   module, fmt, ##__VA_ARGS__)
+#define LogNotice_wf(module, fmt, ...)                 Log_wf(LOG_LEVEL_NOTICE, module, fmt, ##__VA_ARGS__)
+#define LogDebug_wf(module, fmt, ...)                  Log_wf(LOG_LEVEL_DEBUG,  module, fmt, ##__VA_ARGS__)
+#define LogTrace_wf(module, fmt, ...)                  Log_wf(LOG_LEVEL_TRACE,  module, fmt, ##__VA_ARGS__)
 #define LogCustom_wf(level, color, module, fmt, ...)   Logs_LogCustom(level, color, module, NULL, 0, fmt, ##__VA_ARGS__)
 
 

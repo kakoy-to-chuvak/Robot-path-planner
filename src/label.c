@@ -97,18 +97,21 @@ LABEL *Label_New(SDL_Renderer *renderer, const char *font_name, const char *_Tex
                 return NULL;
         
         // allocate memory for struct
+        LogTrace("Label_New", "malloc: allocating memory for new label");
         LABEL *text = (LABEL*)malloc(sizeof(LABEL));
         if ( 0 == text ) {
                 LogError("TextNew", "Error on allocate memory");
                 goto failure0;
         }
         // open font
+        LogTrace("Label_New", "TTF_OpenFont: open font <%s>", font_name);
         TTF_Font *font = TTF_OpenFont(font_name, ptsize);
         if ( font == NULL ) {
                 LogError("TextNew", "Error on TTF_OpenFont: %s", SDL_GetError());
                 goto failure1;
         }
         // rendering text
+        LogTrace("Label_New", "<SDL_Surface *text_surface>: creating <text_surface>");
         SDL_Surface *text_surface;
         if ( flags & LABEL_PARAM_BUBBLE )
                 text_surface = RenderBubbleText(font, _Text, 0, params.radius, foreground, params.outer_color);
@@ -127,11 +130,13 @@ LABEL *Label_New(SDL_Renderer *renderer, const char *font_name, const char *_Tex
         text->rect.w = (float)text_surface->w;
         text->rect.h = (float)text_surface->h;
 
+        LogTrace("Label_New", "SDL_DestroySurface: destroying <text_surface>");
         SDL_DestroySurface(text_surface);
         if ( 0 == text_texture ) {
                 LogError("TextNew", "Error on SDL_CreateTextureFromSurface: %s", SDL_GetError());
                 goto failure2;
         }
+
         text->renderer = renderer;
         text->font = font;
         text->texture = text_texture;
@@ -144,6 +149,7 @@ LABEL *Label_New(SDL_Renderer *renderer, const char *font_name, const char *_Tex
         failure1:
         free(text);
         failure0:
+        LogTrace("Label_New", "fail");
         return NULL;
 }
 
