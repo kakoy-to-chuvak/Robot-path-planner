@@ -26,5 +26,7 @@ ifeq ($(wildcard $(BUILD_DIR)/*),)
 endif
 	copy /y config.set "$(BUILD_DIR)/config.set"
 	@echo Compiling...
-	gcc "$(SRC_DIR)/*.c" -o "$(BUILD_DIR)/$(TARGET_EXEC)" -L $(SDL_LIBS_DIR) -I $(SDL_INCLUDE_DIR) $(SDL_L_ARGS)
+	gcc 	"$(SRC_DIR)/*.c" -o "$(BUILD_DIR)/$(TARGET_EXEC)" -L $(SDL_LIBS_DIR) -I $(SDL_INCLUDE_DIR) $(SDL_L_ARGS) \
+		-Wall -Wextra -Werror \
+		-Wno-alloc-size
 	@echo -------------------

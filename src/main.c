@@ -32,7 +32,7 @@ MENU_BUTTON *menu_buttons[3];
 SDL_Texture *background_texture = NULL;
 SDL_Texture *point_texture = NULL;
 
-PARSED_CONFIG *config = NULL;
+PARSED_CONFIG config_object;
 
 bool lmb_pressed = 0;
 bool rmb_pressed = 0;
@@ -94,19 +94,13 @@ int render(APP *app) {
 int setup(APP *app) {
         LogDebug("setup", "enter setup");
         LogDebug("setup", "start parsing config");
-        config = Config_Parse("config.set");
-        char buffer[1024] = "";
-        Config_GetElement(config, "qwae", buffer, sizeof(buffer));
-        printf("qwae:%s\n\n", buffer);
-        Config_GetElement(config, "sad", buffer, sizeof(buffer));
-        printf("sad:%s\n\n", buffer);
-        Config_GetElement(config, "----", buffer, sizeof(buffer));
-        printf("----:%s\n\n", buffer);
+        config_object = Config_Parse("config.set");
+        printf("modules_count: %i\n\n\nprinting config:\n\n", config_object.modules_count);
 
-        LogDebug("setup", "SDL_SetRenderDrawColor");
-        SDL_SetRenderDrawColor(app->Renderer, 160, 160, 160, 255);
+        Config_Print(config_object);
 
-        LogDebug("setup", "IMG_Load: loading <images/point.png> to <tmp_surf>");
+
+        LogDebug("setup", "IMG_Load: loading [images/point.png] to [tmp_surf]" );
         SDL_Surface *tmp_surf = IMG_Load("images/point.png");
         if ( NULL == tmp_surf ) {
                 LogError("setup", "IMG_Load failed: %s", SDL_GetError());
@@ -114,7 +108,7 @@ int setup(APP *app) {
         }
 
         
-        LogDebug("setup", "SDL_CreateTextureFromSurface: creating <point_texture>");
+        LogDebug("setup", "SDL_CreateTextureFromSurface: creating [point_texture]" );
         point_texture = SDL_CreateTextureFromSurface(app->Renderer, tmp_surf);
         SDL_DestroySurface(tmp_surf);
         if ( NULL == point_texture ) {
@@ -122,14 +116,14 @@ int setup(APP *app) {
                 return 0;
         }
         
-        LogDebug("setup", "IMG_Load: loading <images/ground.png> to <tmp_surf>");
+        LogDebug("setup", "IMG_Load: loading [images/ground.png] to [tmp_surf]" );
         tmp_surf = IMG_Load("images/ground.png");
         if ( NULL == tmp_surf ) {
                 LogError("setup", "IMG_Load failed: %s", SDL_GetError());
                 return 0;
         }
 
-        LogDebug("setup", "SDL_CreateTextureFromSurface: creating <background_texture>");
+        LogDebug("setup", "SDL_CreateTextureFromSurface: creating [background_texture]" );
         background_texture = SDL_CreateTextureFromSurface(app->Renderer, tmp_surf);
         SDL_DestroySurface(tmp_surf);
         if ( NULL == background_texture ) {
@@ -137,8 +131,8 @@ int setup(APP *app) {
                 return 0;
         }
 
-        LogDebug("setup", "Label_New: creating label <point_text>");
-        point_text = Label_New(app->Renderer, "fonts/ArialBlackPrimer.ttf", "(0, 0)", TEXT_SIZE, TEXT_COLOR_Black, LABEL_PARAM_BORDER, TEXT_PARAMS);
+        LogDebug("setup", "Label_New: creating label [point_text]" );
+        point_text = Label_New(app->Renderer, "fonts/Hasklig-Black.ttf", "(0, 0)", TEXT_SIZE, TEXT_COLOR_Black, LABEL_PARAM_BORDER, TEXT_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
                 return 0;
@@ -146,21 +140,21 @@ int setup(APP *app) {
 
 
         // Menu
-        LogDebug("setup", "Label_New: creatng menu label <0>");
+        LogDebug("setup", "Label_New: creatng menu label [0]" );
         menu_labels[0] = Label_New(app->Renderer, "fonts/Hasklig-Regular.ttf", "Add point", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
                 return 0;
         }
         
-        LogDebug("setup", "Label_New: creatng menu label <1>");
+        LogDebug("setup", "Label_New: creatng menu label [1]" );
         menu_labels[1] = Label_New(app->Renderer, "fonts/Hasklig-Regular.ttf", "Add to start", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
                 return 0;
         }
 
-        LogDebug("setup", "Label_New: creatng menu label <2>");
+        LogDebug("setup", "Label_New: creatng menu label [2]" );
         menu_labels[2] = Label_New(app->Renderer, "fonts/Hasklig-Regular.ttf", "Delete point", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
@@ -168,7 +162,7 @@ int setup(APP *app) {
         }
 
 
-        LogDebug("setup", "Menu_New: creating menu: <menu>");
+        LogDebug("setup", "Menu_New: creating menu: [menu]" );
         menu = Menu_New(app->Renderer, SDL_PIXELFORMAT_RGBA32,
                 MENU_BG, 5, 0, MENU_BORDER_COLOR);
         if ( NULL == menu ) {
@@ -189,7 +183,7 @@ int setup(APP *app) {
         LogDebug("setup", "first render");
         render(app);
 
-        LogDebug("setup", "destroying trash");
+        LogDebug("setup", "deleting temporary variables");
         SDL_DestroySurface(tmp_surf);
 
         LogDebug("setup", "end setup");
@@ -334,8 +328,13 @@ int main() {
 
         app_quit:
         Label_Free(point_text);
+
         Menu_Free(menu);
-        Config_Delete(config);
+        Label_Free(menu_labels[0]);
+        Label_Free(menu_labels[1]);
+        Label_Free(menu_labels[2]);
+        
+        // Config_Delete(config_object);
 
         SDL_DestroyTexture(point_texture);
         SDL_DestroyTexture(background_texture);

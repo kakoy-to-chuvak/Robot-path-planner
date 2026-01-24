@@ -7,186 +7,242 @@
 
 
 
-uint64_t __hash1(char *str) {
-        uint64_t hash = 0;
+uint64_t __hash(char *str) {
+        if ( str == NULL ) {
+                return 2166136261 * 16777619;
+        } 
+
+        uint64_t hash = 2166136261;
         while ( *str ) {
-                hash = hash << 8;
-                hash |= *str;
+                hash ^= *str;
+                hash *= 16777619;
                 str++;
         }
         return hash;
 }
 
-uint64_t __hash2(char *str) {
-        return (uint64_t)(*str) * (uint64_t)(*str) * strlen(str);
-        
+struct __CONFIG_PARSED_MOULE__ *__Config_SetModule(PARSED_CONFIG *__Config, char *__Module_name) {
+        uint64_t hash = __hash(__Module_name);
+
+        struct __CONFIG_PARSED_MOULE__ *now = __Config->modules;
+
+        int i = 0;
+        while ( i < __Config->modules_count ) {
+                if ( now->hash == hash && strcmp(__Module_name, now->name) == 0 ) {
+                        break;
+                }
+                now++;
+                i++;
+        }
+
+        if ( i < __Config->modules_count ) {
+                return now;
+        }
+
+        struct __CONFIG_PARSED_MOULE__ *realloc_result = realloc(__Config->modules, sizeof(struct __CONFIG_PARSED_MOULE__) * ( i + 1 ) );
+        if ( realloc_result == NULL ) {
+                LogError("Config_Parse", "error on reallocating memory for [realloc_result]");
+                return NULL;
+        }
+
+        __Config->modules = realloc_result;
+        __Config->modules_count++;
+        now = &realloc_result[i];
+
+        now->elements_count = 0;
+        now->elements = malloc(0);
+        now->hash = hash;
+        now->name = malloc( strlen(__Module_name) + 1 );
+        strcpy(now->name, __Module_name);
+
+        return now;
+}
+
+struct __CONFIG_PARSED_ELEMENT__ *__Module_AddElement(struct __CONFIG_PARSED_MOULE__ *__Module, char *__Key, char *__Value) {
+        struct __CONFIG_PARSED_ELEMENT__ *realloc_result = realloc(__Module->elements, sizeof(struct __CONFIG_PARSED_ELEMENT__) * ( __Module->elements_count + 1 ) );
+        if ( realloc_result == NULL ) {
+                LogError("Config_Parse", "error on reallocating memory for [realloc_result]");
+                return NULL;
+        }
+
+        struct __CONFIG_PARSED_ELEMENT__ *new_element = &realloc_result[__Module->elements_count];
+        __Module->elements = realloc_result;
+        __Module->elements_count++;
+
+        new_element->key = malloc( strlen(__Key) + 1 );
+        if ( new_element->key == NULL ) {
+                __Module->elements_count--;
+                return NULL;
+        }
+
+        new_element->raw_value = malloc( strlen(__Value) + 1 );
+        if ( new_element->raw_value == NULL ) {
+                __Module->elements_count--;
+                free(new_element->key);
+                return NULL;
+        }
+
+        strcpy(new_element->raw_value, __Value);
+        strcpy(new_element->key, __Key);
+        new_element->hash = __hash(__Key);
+
+        return new_element; 
 }
 
 
-int __element_compare(const void *a, const void *b) {
-        uint64_t hash_a = ((__CONFIG_PARSED_ELEMENT__*)a)->hash1;
-        uint64_t hash_b = ((__CONFIG_PARSED_ELEMENT__*)b)->hash1;
-        if ( a < b ) {
-                return 1;
-        } else if ( a > b ) {
-                return -1;
-        }
-
-        hash_a = ((__CONFIG_PARSED_ELEMENT__*)a)->hash2;
-        hash_b = ((__CONFIG_PARSED_ELEMENT__*)b)->hash2;
-
-        if ( a < b ) {
-                return 1;
-        } else if ( a > b ) {
-                return -1;
-        }
-        
-        return 0;
+int __Compare_elements(const void *_Element_1, const void *_Element_2) {
+        // compares elements hashes
+        return ( ((struct __CONFIG_PARSED_MOULE__*)_Element_1)->hash - ((struct __CONFIG_PARSED_ELEMENT__*)_Element_2)->hash );
 }
 
-PARSED_CONFIG *Config_Parse(char *file_name) {
-        // open source file
-        FILE *config_file = fopen(file_name, "r");
+int __Compare_modules(const void *_Module_1, const void *_Module_2) {
+        // compares modules hashes
+        return ( ((struct __CONFIG_PARSED_MOULE__*)_Module_1)->hash - ((struct __CONFIG_PARSED_ELEMENT__*)_Module_2)->hash );
+}
+
+PARSED_CONFIG Config_Parse(char *_FileName) {
+        // open file
+        FILE *config_file = fopen(_FileName, "r");
         if ( config_file == NULL ) {
-                LogError("Config_Parse", "parse failed: Couldn't open %s", file_name);
-                return NULL;
+                LogError("Config_Parse", "parse failed: Couldn't open %s", _FileName);
+                return NULL_CONFIG;
         }
 
-        // open file for parsed values
-        char parsed_file_path[1024] = ".";
-        strcat_s(parsed_file_path, sizeof(parsed_file_path), file_name);
-        strcat_s(parsed_file_path, sizeof(parsed_file_path), ".parsed");
-
-
-        FILE *parsed_file = fopen(parsed_file_path, "w+");
-        if ( parsed_file == NULL ) {
-                LogError("Config_Parse", "parse failed: Couldn't create %s", parsed_file_path);
-                return NULL;
+        PARSED_CONFIG config;
+        config.modules = malloc( sizeof(struct __CONFIG_PARSED_MOULE__) );
+        if ( config.modules == NULL ) {
+                LogError("Config_Parse", "Couldn't open allocate memory for [config]");
+                return NULL_CONFIG;
         }
-
-
-        // creating main struct
-        PARSED_CONFIG *config = malloc(sizeof(PARSED_CONFIG));
-        if ( config == NULL ) {
-               LogError("Config_Parse", "parse failed: Couldn't allocate memory for <PARSED_CONFIG>");
-               return NULL;
-        }
-
-        __CONFIG_PARSED_ELEMENT__ *parsed_array = malloc(0);
-        uint64_t element_count = 0;
-        uint64_t char_number = 0;
+        config.modules_count = 1;
         
+        struct __CONFIG_PARSED_MOULE__ *now_module = &config.modules[0];
+        now_module->name = "";
+        now_module->hash = __hash("");
+        now_module->elements_count = 0;
+
+        now_module->elements = malloc( 0 );
+        if ( now_module->elements == NULL ) {
+                LogError("Config_Parse", "Couldn't open allocate memory for [now_module->elements]");
+                return NULL_CONFIG;
+        }
+
+
         char buffer[1024] = "";
-
-        fseek(config_file, 0, SEEK_SET);
+        
+        // parsing
         while ( fgets(buffer, sizeof(buffer), config_file) ) {
-                char *name = buffer;
-                char *value = buffer;
-                bool is_not_element = 1;
-
-                while ( *value ) {
-                        if ( *value == ':' ) {
-                                *value = '\0';
-                                value++;
-                                is_not_element = 0;
-                                break;
-                        }
-                        value++;
+                int buffer_len = strlen(buffer);
+                if ( buffer[ buffer_len - 1 ] == '\n' ) {
+                        buffer[ buffer_len - 1 ] = '\0';
                 }
 
-                if ( is_not_element ) {
+                char *now = buffer;
+                char *key = NULL;
+                char *value = NULL;
+                bool bracket_open = 0;
+                
+                while ( *now == ' ' || *now == '\t' ) {
+                        now++;
+                }
+
+                if ( *now == '\0' || *now == '#' || *now == ':' ) {
                         continue;
                 }
 
-                __CONFIG_PARSED_ELEMENT__ *realloc_result = realloc(parsed_array, sizeof(__CONFIG_PARSED_ELEMENT__)*(element_count+1));
-                if ( realloc_result == NULL ) {
-                        LogError("Config_Parse", "parse failed: Couldn't reallocate memory for <__CONFIG_PARSED_ELEMENT__>");
-                        fclose(config_file);
-                        fclose(parsed_file);
-                        free(config);
-                        return NULL;
+                key = now;
+                bracket_open = ( *now == '[' );
+
+                char *last_space = NULL;
+                bool prev_is_space = 0;
+
+                while ( *now != ':' && *now != '\0' && ( bracket_open == 0 || *now != ']' ) ) {
+                        if ( *now == ' ' ) {
+                                if ( prev_is_space == 0 ) {
+                                        last_space = now;
+                                        prev_is_space = 1;
+                                }
+                        } else {
+                                last_space = NULL;
+                                prev_is_space = 0;
+                        }
+
+                        now++;
                 }
-                parsed_array = realloc_result;
-        
-                parsed_array[element_count] = (__CONFIG_PARSED_ELEMENT__){__hash1(name), __hash2(name), char_number};
-                char_number += strlen(value) + 1;
-        
-                fputs(value, parsed_file);
-                fflush(parsed_file);
-        
-                element_count++;
+
+                switch ( *now ) { 
+                        case  '\0':
+                                continue;
+                                break;
+                        case ':':
+                                if ( last_space ) {
+                                        *last_space = '\0';
+                                }
+                                value = now + 1;
+                                *now = '\0';
+                                break;
+                        case ']':
+                                key++;
+                                while ( *key == ' ' || *key == '\t' ) {
+                                        key++;
+                                }
+                                if ( last_space ) {
+                                        *last_space = '\0';
+                                }
+                                *now = '\0'; 
+                                now_module = __Config_SetModule(&config, key);
+                                if ( now_module == NULL ) {
+                                        LogError("Config_Parse", "[__Config_SetModule] failed");
+                                        now_module = config.modules;
+                                }
+                                LogTrace("Config_Parse/parsing", "module: \"%s\"\n", key);
+                                continue;
+                                break;
+                        default:
+                                continue;
+                                break;
+                }
+
+                __Module_AddElement(now_module, key, value);
+                LogTrace("Config_Parse/parsing", "%s |\"%s\": {%s}\n", now_module->name, key, value);
         }
 
-        fclose(config_file);
-        config->element_array = parsed_array;
-        config->element_count = element_count;
-        config->parsed_file = parsed_file;
+        qsort(config.modules, config.modules_count, sizeof(struct __CONFIG_PARSED_MOULE__), __Compare_modules);
 
-        qsort(parsed_array, element_count, sizeof(__CONFIG_PARSED_ELEMENT__), __element_compare);
+        for ( int i = 0 ; i < config.modules_count ; i++ ) {
+                struct __CONFIG_PARSED_MOULE__ now_module = config.modules[i];
+                qsort(now_module.elements, now_module.elements_count, sizeof(struct __CONFIG_PARSED_ELEMENT__), __Compare_elements);
+        }
         
         return config;
 }
 
 
-
-
-
-char *Config_GetElement(PARSED_CONFIG *config, char *element_name, char *buffer, int max_count) {
-        int left = 0;
-        int right = config->element_count - 1;
-        int mid = 0;
-
-        uint64_t key = __hash1(element_name);
-        __CONFIG_PARSED_ELEMENT__ *array = config->element_array;
-
-        while (left <= right) {
-                mid = left + (right - left) / 2;
-
-                if (array[mid].hash1 == key) {
-                        goto get_string;
-                }
-
-                if (array[mid].hash1 < key) {
-                        left = mid + 1;
-                } else {
-                        right = mid - 1;
+void Config_Print(PARSED_CONFIG _Config) {
+        for ( int i = 0 ; i < _Config.modules_count ; i++ ) {
+                struct __CONFIG_PARSED_MOULE__ now_module = _Config.modules[i];
+                printf("[%s]\n", now_module.name);
+                for ( int j = 0 ; j < now_module.elements_count ; j++ ) {
+                        struct __CONFIG_PARSED_ELEMENT__ element = now_module.elements[j];
+                        printf("%s:%s\n", element.key, element.raw_value);
                 }
         }
-
-        return NULL;
-
-        get_string:
-        uint64_t key2 = __hash2(element_name);
-        __CONFIG_PARSED_ELEMENT__ *now = &array[mid];
-
-        if ( key2 > now->hash2 ) {
-                while ( key2 != now->hash2 && now != array ) {
-                        now--;
-                        if ( now->hash1 != key ) {
-                                return NULL;
-                        }
-                }
-        } else if ( key2 < now->hash2 ) {
-                while ( key2 != now->hash2 && now != array + config->element_count - 1 ) {
-                        now++;
-                        if ( now->hash1 != key ) {
-                                return NULL;
-                        }
-                }    
-        }
-
-        fseek(config->parsed_file, now->string_number, SEEK_SET);
-        fgets(buffer, max_count, config->parsed_file);
 }
 
 
 
-void Config_Delete(PARSED_CONFIG *config) {
-        if ( config == NULL ) {
-                return;
-        }
 
-        free(config->element_array);
-        free(config);
-}
+
+// char *Config_GetElement(PARSED_CONFIG *config, char *element_name, char *buffer, int buffer_size) {
+        
+// }
+
+
+
+// void Config_Delete(PARSED_CONFIG *config) {
+        
+// }
+
+
+
 

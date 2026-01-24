@@ -10,14 +10,14 @@
 #define TPS 60
 #define FPS 60
 
-#define TEXT_SIZE (30)
+#define TEXT_SIZE (35)
 
 #define TEXT_COLOR_Black ((SDL_Color){0, 0, 0, 255})
 #define TEXT_COLOR_BrightWhite ((SDL_Color){255, 255, 255, 255})
 #define TEXT_COLOR_White ((SDL_Color){222, 222, 222, 255})
 #define TEXT_COLOR_Grey ((SDL_Color){128, 128, 128, 255})
 
-#define TEXT_PARAMS ((LABEL_PARAMS){TEXT_COLOR_White, 2})
+#define TEXT_PARAMS ((LABEL_PARAMS){TEXT_COLOR_White, 3})
 
 
 #define MENU_BG ((SDL_Color){31, 31, 31, 255})

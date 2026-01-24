@@ -9,26 +9,56 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <SDL3/SDL.h>
+
+#define NULL_CONFIG (PARSED_CONFIG){NULL, 0}
+
+
+typedef union __union_CONFIG_VALUE__ {
+        char      *raw;
+        char      *asStr;
+        int64_t   asInt;
+        double    asFloat;
+        SDL_Color asColor;
+} CONFIG_VALUE;
+
+typedef enum __enum_value_types__ {
+        VALUE_TYPE_RAW,
+        VALUE_TYPE_STR,
+        VALUE_TYPE_INT,
+        VALUE_TYPE_FLOAT,
+        VALUE_TYPE_COLOR
+} CONFIG_VALUE_TYPE;
 
 
 
-typedef struct _struct_CONFIG_PARSED_ELEMENT {
-        uint64_t hash1;
-        uint64_t hash2;
-        uint64_t string_number;
-} __CONFIG_PARSED_ELEMENT__;
+struct __CONFIG_PARSED_ELEMENT__ {
+        uint64_t          hash;
+        char*             key;
+        char*             raw_value;
+        CONFIG_VALUE      value;
+        CONFIG_VALUE_TYPE type;
+};
 
 
-typedef struct PARSED_CONFIG {
-        __CONFIG_PARSED_ELEMENT__ *element_array;
-        uint64_t element_count;
-        FILE *parsed_file;
+struct __CONFIG_PARSED_MOULE__ {
+        uint64_t hash;
+        char *name;
+        struct __CONFIG_PARSED_ELEMENT__ *elements;
+        int elements_count;
+};
+
+
+typedef struct _struct_PARSED_CONFIG {
+      struct __CONFIG_PARSED_MOULE__ *modules;
+      int modules_count;  
 } PARSED_CONFIG;
 
 
-PARSED_CONFIG *Config_Parse(char *file_name);
-char *Config_GetElement(PARSED_CONFIG* config, char *element_name, char *buffer, int max_count);
-void Config_Delete(PARSED_CONFIG* config);
+PARSED_CONFIG Config_Parse(char *file_name);
+void Config_Print(PARSED_CONFIG _Config);
+// char *Config_GetElement(PARSED_CONFIG* config, char *element_name, char *buffer, int max_count);
+// void Config_Delete(PARSED_CONFIG* config);
 
 
 
