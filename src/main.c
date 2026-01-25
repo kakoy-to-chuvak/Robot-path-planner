@@ -46,27 +46,35 @@ PArray points = {
         NULL,
 };
 
+struct menu_args {
+        Point *point;
+        int x;
+        int y;
+};
 
 
 // menu buttons functions
-void *Menu_AddPoint(void *menu, void *v_point) {
-        AddPoint(&points, ((MENU*)menu)->x, ((MENU*)menu)->y, v_point);
+void *Menu_AddPoint(void *menu, void *args_vpointer) {
+        struct menu_args args = *((struct menu_args*)args_vpointer);
+        AddPoint(&points, args.x, args.y, args.point);
 
-        return NULL;
+        return menu;
 }
 
-void *Menu_DelPoint(void *menu, void *v_point) {
-        if ( v_point ) {
-                DelPoint(&points, v_point);
+void *Menu_DelPoint(void *menu, void *args_vpointer) {
+        struct menu_args args = *((struct menu_args*)args_vpointer);
+        if ( args.point ) {
+                DelPoint(&points, args.point);
         }
 
         return menu;
 }
 
-void *Menu_AddPointToStart(void *menu, void *v_point) {
-        AddPoint_tostart(&points, ((MENU*)menu)->x, ((MENU*)menu)->y);
+void *Menu_AddPointToStart(void *menu, void *args_vpointer) {
+        struct menu_args args = *((struct menu_args*)args_vpointer);
+        AddPoint_tostart(&points, args.x, args.y);
 
-        return v_point;
+        return menu;
 }
 
 
@@ -95,10 +103,8 @@ int setup(APP *app) {
         LogDebug("setup", "enter setup");
         LogDebug("setup", "start parsing config");
         config_object = Config_Parse("config.set");
-        printf("modules_count: %i\n\n\nprinting config:\n\n", config_object.modules_count);
 
         Config_Print(config_object);
-
 
         LogDebug("setup", "IMG_Load: loading [images/point.png] to [tmp_surf]" );
         SDL_Surface *tmp_surf = IMG_Load("images/point.png");
@@ -263,17 +269,25 @@ int Tick(APP *app) {
         static bool prev_rmb_state = 0;
         bool rmb_clicked = rmb_pressed && prev_rmb_state == 0;
 
+        static struct menu_args args = {
+                NULL,
+                0, 0
+        };
+
         
         changes |= CheckMousePos(&points, mouse_x, mouse_y, lmb_pressed, prev_lmb_state, shift_pressed, ctrl_pressed);
         
-        static Point *to_change = NULL;
         if ( rmb_clicked && ( menu->active == 0 || Menu_MouseOut(menu, mouse_x, mouse_y) ) ) {
+                args.x = mouse_x;
+                args.y = mouse_y;
+
                 Menu_Move(menu, mouse_x, mouse_y, APP_WIDTH, APP_HEIGHT);
                 menu->active = 1;
                 changes = 1;
-                to_change = (Point*)( (uint64_t)points.selected_point | (uint64_t)points.selected_line );
 
-                if ( to_change == NULL ) {
+                args.point = (Point*)( (uint64_t)points.selected_point | (uint64_t)points.selected_line );
+
+                if ( args.point == NULL ) {
                         menu_buttons[2]->active = 0;
                         Label_Update(menu_labels[2], "Delete point", TEXT_COLOR_Grey);
                 } else {
@@ -282,7 +296,7 @@ int Tick(APP *app) {
                 }
         }
 
-        changes |= Menu_CheckUpdate(menu, mouse_x, mouse_y, lmb_clicked | rmb_clicked, to_change);
+        changes |= Menu_CheckUpdate(menu, mouse_x, mouse_y, lmb_clicked | rmb_clicked, &args);
 
         prev_lmb_state = lmb_pressed;
         prev_rmb_state = rmb_pressed;
@@ -334,7 +348,7 @@ int main() {
         Label_Free(menu_labels[1]);
         Label_Free(menu_labels[2]);
         
-        // Config_Delete(config_object);
+        Config_Delete(config_object);
 
         SDL_DestroyTexture(point_texture);
         SDL_DestroyTexture(background_texture);

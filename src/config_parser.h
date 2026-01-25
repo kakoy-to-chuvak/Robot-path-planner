@@ -57,8 +57,8 @@ typedef struct _struct_PARSED_CONFIG {
 
 PARSED_CONFIG Config_Parse(char *file_name);
 void Config_Print(PARSED_CONFIG _Config);
-// char *Config_GetElement(PARSED_CONFIG* config, char *element_name, char *buffer, int max_count);
-// void Config_Delete(PARSED_CONFIG* config);
+CONFIG_VALUE *Config_GetElement(PARSED_CONFIG config, char *_Element_name, char *_Module_name);
+void Config_Delete(PARSED_CONFIG config);
 
 
 

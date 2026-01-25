@@ -9,7 +9,7 @@
 
 uint64_t __hash(char *str) {
         if ( str == NULL ) {
-                return 2166136261 * 16777619;
+                return 2166136261;
         } 
 
         uint64_t hash = 2166136261;
@@ -20,6 +20,8 @@ uint64_t __hash(char *str) {
         }
         return hash;
 }
+
+
 
 struct __CONFIG_PARSED_MOULE__ *__Config_SetModule(PARSED_CONFIG *__Config, char *__Module_name) {
         uint64_t hash = __hash(__Module_name);
@@ -81,6 +83,8 @@ struct __CONFIG_PARSED_ELEMENT__ *__Module_AddElement(struct __CONFIG_PARSED_MOU
                 free(new_element->key);
                 return NULL;
         }
+        new_element->value.raw = new_element->raw_value;
+        new_element->type = VALUE_TYPE_RAW;
 
         strcpy(new_element->raw_value, __Value);
         strcpy(new_element->key, __Key);
@@ -89,16 +93,44 @@ struct __CONFIG_PARSED_ELEMENT__ *__Module_AddElement(struct __CONFIG_PARSED_MOU
         return new_element; 
 }
 
-
 int __Compare_elements(const void *_Element_1, const void *_Element_2) {
         // compares elements hashes
-        return ( ((struct __CONFIG_PARSED_MOULE__*)_Element_1)->hash - ((struct __CONFIG_PARSED_ELEMENT__*)_Element_2)->hash );
+        uint64_t hash1 = ((struct __CONFIG_PARSED_MOULE__*)_Element_1)->hash;
+        uint64_t hash2 = ((struct __CONFIG_PARSED_MOULE__*)_Element_2)->hash;
+
+        if ( hash1 > hash2 ) {
+                return 1;
+        } else if ( hash1 < hash2 ) {
+                return -1;
+        }
+
+        return 0;
 }
 
 int __Compare_modules(const void *_Module_1, const void *_Module_2) {
         // compares modules hashes
-        return ( ((struct __CONFIG_PARSED_MOULE__*)_Module_1)->hash - ((struct __CONFIG_PARSED_ELEMENT__*)_Module_2)->hash );
+        uint64_t value1 = ((struct __CONFIG_PARSED_MOULE__*)_Module_1)->hash;
+        uint64_t value2 = ((struct __CONFIG_PARSED_MOULE__*)_Module_2)->hash;
+
+        if ( value1 > value2 ) {
+                return 1;
+        } else if ( value1 < value2 ) {
+                return -1;
+        }
+
+        // compare elements count
+        value1 = ((struct __CONFIG_PARSED_MOULE__*)_Module_1)->elements_count;
+        value2 = ((struct __CONFIG_PARSED_MOULE__*)_Module_2)->elements_count;
+
+        if ( value1 > value2 ) {
+                return 1;
+        } else if ( value1 < value2 ) {
+                return -1;
+        }
+
+        return 0;
 }
+
 
 PARSED_CONFIG Config_Parse(char *_FileName) {
         // open file
@@ -218,6 +250,7 @@ PARSED_CONFIG Config_Parse(char *_FileName) {
 }
 
 
+
 void Config_Print(PARSED_CONFIG _Config) {
         for ( int i = 0 ; i < _Config.modules_count ; i++ ) {
                 struct __CONFIG_PARSED_MOULE__ now_module = _Config.modules[i];
@@ -232,16 +265,116 @@ void Config_Print(PARSED_CONFIG _Config) {
 
 
 
+struct __CONFIG_PARSED_MOULE__ *__Config_FindModule(PARSED_CONFIG config, char *_Module_name) {
+        int left = 0;
+        int right = config.modules_count - 1;
+        struct __CONFIG_PARSED_MOULE__ *arr = config.modules;
+        uint64_t hash = __hash(_Module_name);
 
-// char *Config_GetElement(PARSED_CONFIG *config, char *element_name, char *buffer, int buffer_size) {
-        
-// }
+        while (left <= right) {
+                int mid = left + (right - left) / 2;
+
+                if (arr[mid].hash == hash) {
+                        while ( mid && arr[mid-1].hash == hash ) {
+                                mid--;
+                        }
+
+                        while ( mid < config.modules_count && arr[mid].hash == hash ) {
+                                if ( strcmp(arr[mid].name, _Module_name) == 0 ) {
+                                        return &arr[mid];
+                                }
+                                mid++;
+                        }
+
+                        return NULL;
+                }
+
+                if (arr[mid].hash < hash) {
+                        left = mid + 1;
+                } else {
+                        right = mid - 1;
+                }
+        }
+
+        return NULL;
+}
+
+struct __CONFIG_PARSED_ELEMENT__ *__Config_FindElement(struct __CONFIG_PARSED_MOULE__ _Module, char *_Element_name) {
+        int left = 0;
+        int right = _Module.elements_count - 1;
+        struct __CONFIG_PARSED_ELEMENT__ *arr = _Module.elements;
+        uint64_t hash = __hash(_Element_name);
+
+        while (left <= right) {
+                int mid = left + (right - left) / 2;
+
+                if (arr[mid].hash == hash) {
+                        while ( mid && arr[mid-1].hash == hash ) {
+                                mid--;
+                        }
+
+                        while ( mid < _Module.elements_count && arr[mid].hash == hash ) {
+                                if ( strcmp(arr[mid].key, _Element_name) == 0 ) {
+                                        return &arr[mid];
+                                }
+                                mid++;
+                        }
+
+                        return NULL;
+                }
+
+                if (arr[mid].hash < hash) {
+                        left = mid + 1;
+                } else {
+                        right = mid - 1;
+                }
+        }
+
+        return NULL;
+}
+
+
+CONFIG_VALUE *Config_GetElement(PARSED_CONFIG config, char *_Element_name, char *_Module_name) {
+        struct __CONFIG_PARSED_MOULE__ *module = __Config_FindModule(config, _Module_name);
+        if ( module == NULL ) {
+                return NULL;
+        }
+
+        struct __CONFIG_PARSED_ELEMENT__ *element = __Config_FindElement(*module, _Element_name);
+        if ( element == NULL ) {
+                return NULL;
+        }
+
+        return &element->value;
+}
 
 
 
-// void Config_Delete(PARSED_CONFIG *config) {
-        
-// }
+
+void __Config_FreeElement(struct __CONFIG_PARSED_ELEMENT__ _Element) {
+        free(_Element.key);
+        free(_Element.raw_value);
+        if ( _Element.type == VALUE_TYPE_STR ) {
+                free(_Element.value.asStr);
+        }
+}
+
+void __Config_FreeModule(struct __CONFIG_PARSED_MOULE__ _Module) {
+        for ( int i = 0 ; i < _Module.elements_count ; i++ ) {
+                __Config_FreeElement(_Module.elements[i]);
+        }
+        free(_Module.elements);
+        free(_Module.name);
+}
+
+
+void Config_Delete(PARSED_CONFIG config) {
+        for ( int i = 0 ; i < config.modules_count ; i++ ) {
+               __Config_FreeModule(config.modules[i]);
+        }
+
+        free(config.modules);
+}
 
 
 

@@ -1,3 +1,4 @@
+[Main]
 TEXT_SIZE: 30
 
 TEXT_COLOR: #000000FF
@@ -22,7 +23,6 @@ FONT: fonts/Hasklig-Regular.ttf
 TEXT_SIZE: 30
 
 [Points]
-POINT_DIAMETR: 31
 POINT_RADIUS: 15
 
 LINE_RADIUS: 5
