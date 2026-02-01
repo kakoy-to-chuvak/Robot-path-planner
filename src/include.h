@@ -25,10 +25,10 @@
 
 
 #define POINT_DIAMETR (POINT_RADIUS + POINT_RADIUS)
-#define POINT_RADIUS 0.058
+#define POINT_RADIUS 17
 
-#define LINE_RADIUS 0.0187
-#define ARROW_BASE 0.08
+#define LINE_RADIUS 6
+#define ARROW_BASE 20
 
 #define BOX_HEIGHT 2.0f
 #define BOX_WIDTH  3.0f

@@ -18,6 +18,7 @@
 #include "vectors.h"
 #include "path.h"
 #include "menu.h"
+#include "filesave.h"
 
 
 
@@ -40,6 +41,8 @@ bool lmb_pressed = 0;
 bool rmb_pressed = 0;
 bool shift_pressed = 0;
 bool ctrl_pressed = 0;
+
+char save_file[MAX_PATH] = { 0 };
 
 bool changes = 1;
 PArray points = {
@@ -257,6 +260,14 @@ int Tick(APP *app) {
                                         case SDL_SCANCODE_LCTRL:
                                                 ctrl_pressed = 1;
                                                 break;
+                                        case SDL_SCANCODE_S:
+                                                if ( ctrl_pressed == 0 ) {
+                                                        break;
+                                                }
+
+                                                OpenFIleDialog(NULL, NULL, &points);
+                                                
+                                                break;
                                         default:
                                                 break;
                                 }
@@ -275,7 +286,7 @@ int Tick(APP *app) {
                                 break;
                         case SDL_EVENT_WINDOW_RESIZED:
                                 SDL_GetWindowSize(app->Window, &window_w, &window_h);
-                                float k = ((float)background_texture->w) / ((float)background_texture->h);
+                                float k = BOX_WIDTH / BOX_HEIGHT;
                                 
                                 // resize background texture
                                 if ( ((float)window_w) / ((float)window_h) > k ) {
@@ -342,7 +353,7 @@ int Tick(APP *app) {
 
 int main() {
         Logs_SetFile("logs.log");
-        Logs_SetLogLevel(LOG_LEVEL_INFO);
+        Logs_SetLogLevel(LOG_LEVEL_NOTICE);
         Logs_EnableColors(0);
 
         if ( 0==SDL_Init(SDL_INIT_FLAGS) ) {
@@ -367,11 +378,11 @@ int main() {
         }
 
         window_w = background_texture->w;
-        window_h = background_texture->h;
+        window_h = window_w / BOX_WIDTH * BOX_HEIGHT;
         SDL_SetWindowSize(app->Window, window_w, window_h);
 
-        background_texture_rect.w = background_texture->w;
-        background_texture_rect.h = background_texture->h;
+        background_texture_rect.w = window_w;
+        background_texture_rect.h = window_h;
         background_texture_rect.x = 0;
         background_texture_rect.y = 0;
 
