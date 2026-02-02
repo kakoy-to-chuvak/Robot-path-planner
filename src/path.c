@@ -53,6 +53,14 @@ void _RenderPointCords(Point *point, LABEL *label, SDL_FRect texture_box) {
                 30,
         };
 
+        if ( label_rect.x + label_rect.w + 10 > texture_box.x + texture_box.w ) {
+                label_rect.x = real_cords.x - 10 - label_rect.w;
+        }
+
+        if ( label_rect.y + label_rect.h + 10 > texture_box.y + texture_box.h ) {
+                label_rect.y = real_cords.y - 10 - label_rect.h;
+        }
+
         Label_Draw(label, NULL, &label_rect);
 }
 
