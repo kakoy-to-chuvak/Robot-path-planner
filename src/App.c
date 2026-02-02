@@ -86,7 +86,6 @@ int AppMainloop(APP *app) {
 
         LogDebug("AppMainloop", "set tick functions");
         int (*Tick)(APP*) = app->Tick;
-        int (*RenderTick)(APP*) = app->RenderTick;
 
         LogDebug("AppMainloop", "start cycle");
         while ( app->is_running && app->exit_code >= 0) {
@@ -96,8 +95,6 @@ int AppMainloop(APP *app) {
                         last_tick = SDL_GetTicksNS();
                         if ( Tick )
                                 app->exit_code = Tick(app);
-                        if ( RenderTick )
-                                RenderTick(app);
                 }
 
                 CRP_sleep(1);
@@ -110,11 +107,6 @@ int AppMainloop(APP *app) {
 void AppSetTick(APP *app, int(*Tick)(APP*)) { 
         app->Tick = Tick; 
 }
-
-void AppSetRendererTick(APP *app, int(*Tick)(APP*)) {
-        app->RenderTick = Tick;
-}
-
 
 
 // fps / tps 

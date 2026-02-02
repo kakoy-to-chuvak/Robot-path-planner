@@ -260,8 +260,6 @@ bool CheckPoint(PArray *points, Point *point, SDL_FPoint mouse_pos, bool mouse_p
 
 
 bool CheckMousePos(PArray *points, SDL_FPoint mouse_pos, SDL_FRect texture_box, bool mouse_pressed, bool prev_mouse_state, bool shift_pressed, bool ctrl_pressed, bool alt_pressed) {
-        bool points_changed = 0;
-
         float fixed_radius = POINT_RADIUS * BOX_HEIGHT / texture_box.h;
         float fixed_line_radius = LINE_RADIUS * BOX_HEIGHT / texture_box.h;
 
@@ -275,14 +273,14 @@ bool CheckMousePos(PArray *points, SDL_FPoint mouse_pos, SDL_FRect texture_box, 
                         points->selected_point->state = PSTATE_NONE_STATE;
                         points->selected_point = NULL;
                 } 
-                points_changed = 1;
+                points->changed = 1;
         }
 
         if ( points->selected_line ) {
                 if ( mouse_pressed == 0 || points->selected_line->line_state != PSTATE_SELECTED ) {
                         points->selected_line->line_state = PSTATE_NONE_STATE;
                         points->selected_line = NULL;
-                        points_changed = 1;
+                        points->changed = 1;
                 }
         }
         
@@ -292,17 +290,17 @@ bool CheckMousePos(PArray *points, SDL_FPoint mouse_pos, SDL_FRect texture_box, 
                         break;
                 }
 
-                points_changed |= CheckPoint(points, now_point, mouse_pos, mouse_pressed, prev_mouse_state, fixed_radius);
+                points->changed |= CheckPoint(points, now_point, mouse_pos, mouse_pressed, prev_mouse_state, fixed_radius);
 
                 if ( points->selected_point == NULL && now_point->next ) {
-                        points_changed |= CheckLine(points, now_point, mouse_pos, mouse_pressed, prev_mouse_state, fixed_radius, fixed_line_radius);
+                        points->changed |= CheckLine(points, now_point, mouse_pos, mouse_pressed, prev_mouse_state, fixed_radius, fixed_line_radius);
                 }
                 now_point = now_point->next;
         }
         
         SDL_SetCursor(SDL_CreateSystemCursor(points->selected_point ? points->selected_point->state == PSTATE_UNDER_MOUSE ? SDL_SYSTEM_CURSOR_POINTER : SDL_SYSTEM_CURSOR_MOVE : SDL_SYSTEM_CURSOR_DEFAULT ));
 
-        return points_changed;
+        return points->changed;
 } 
 
 
@@ -313,6 +311,17 @@ void AddPoint(PArray *points, SDL_FPoint cords, Point *line) {
         if ( new == NULL ) {
                 LogError("AddPoint", "couldn`n allocate memory");
         }
+
+        if ( cords.x < 0 )
+                cords.x = 0;
+        else if ( cords.x > BOX_WIDTH )
+                cords.x = BOX_WIDTH;
+
+
+        if ( cords.y < 0 )
+                cords.y = 0;
+        else if ( cords.y > BOX_HEIGHT )
+                cords.y = BOX_HEIGHT;
 
         *new = (Point){
                 cords, 
@@ -361,6 +370,17 @@ void AddPoint_tostart(PArray *points, SDL_FPoint cords) {
                 LogError("AddPoint", "couldn`n allocate memory");
         }
 
+        if ( cords.x < 0 )
+                cords.x = 0;
+        else if ( cords.x > BOX_WIDTH )
+                cords.x = BOX_WIDTH;
+
+
+        if ( cords.y < 0 )
+                cords.y = 0;
+        else if ( cords.y > BOX_HEIGHT )
+                cords.y = BOX_HEIGHT;
+                
         *new = (Point){
                 cords, 
                 PSTATE_NONE_STATE, PSTATE_NONE_STATE,

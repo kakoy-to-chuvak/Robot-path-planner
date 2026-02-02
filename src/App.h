@@ -38,7 +38,6 @@ typedef struct APP
         APPPROPS Properties;
 
         int (*Tick)(struct APP*);
-        int (*RenderTick)(struct APP*);
         
         int exit_code;
         int is_running;

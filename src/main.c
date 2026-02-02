@@ -43,10 +43,9 @@ bool shift_pressed = 0;
 bool ctrl_pressed = 0;
 bool alt_pressed = 0;
 
-char save_file[MAX_PATH] = { 0 };
 
-bool changes = 1;
 PArray points = {
+        1,
         NULL,
         NULL,
         NULL,
@@ -104,10 +103,6 @@ void *Menu_AddPointToStart(void *menu, void *args_vpointer) {
 
 
 int render(APP *app) {
-        if ( changes == 0 )
-                return 1;
-        changes = 0;
-        
         LogTrace("render", "render");
         
         SDL_SetRenderDrawColor(app->Renderer, 0, 0, 0, 255);
@@ -270,12 +265,17 @@ int Tick(APP *app) {
                                                 if ( ctrl_pressed == 0 )
                                                         break;
 
-                                                if ( shift_pressed == 1 || *points.save_file == 0 )
+                                                if ( shift_pressed == 1 || *points.file_name == 0 )
                                                         ShowSaveFIleDialog(NULL, NULL, &points);
                                                 else
                                                         SavePoints(&points);
                                                 
                                                 break;
+                                        case SDL_SCANCODE_O:
+                                                if ( ctrl_pressed == 0 )
+                                                        break;
+
+                                                ShowOpenFIleDialog(NULL, NULL, &points);
                                         default:
                                                 break;
                                 }
@@ -312,7 +312,7 @@ int Tick(APP *app) {
                                         background_texture_rect.y = ( window_h - background_texture_rect.h ) / 2;
                                 }
 
-                                changes = 1;
+                                points.changed = 1;
                                 break;
                         default:
                                 break;
@@ -332,14 +332,14 @@ int Tick(APP *app) {
         };
 
         
-        changes |= CheckMousePos(&points, mouse_pos, background_texture_rect, lmb_pressed, prev_lmb_state, shift_pressed, ctrl_pressed, alt_pressed);
+        CheckMousePos(&points, mouse_pos, background_texture_rect, lmb_pressed, prev_lmb_state, shift_pressed, ctrl_pressed, alt_pressed);
         
         if ( rmb_clicked && ( menu->active == 0 || Menu_MouseOut(menu, mouse_pos.x, mouse_pos.y) ) ) {
                 args.cords = mouse_pos;
 
                 Menu_Move(menu, mouse_pos.x, mouse_pos.y, window_w, window_h);
                 menu->active = 1;
-                changes = 1;
+                points.changed = 1;
 
                 args.point = (Point*)( (uint64_t)points.selected_point | (uint64_t)points.selected_line );
 
@@ -352,10 +352,15 @@ int Tick(APP *app) {
                 }
         }
 
-        changes |= Menu_CheckUpdate(menu, mouse_pos.x, mouse_pos.y, lmb_clicked | rmb_clicked, &args);
+        points.changed |= Menu_CheckUpdate(menu, mouse_pos.x, mouse_pos.y, lmb_clicked | rmb_clicked, &args);
 
         prev_lmb_state = lmb_pressed;
         prev_rmb_state = rmb_pressed;
+
+        if ( points.changed ) {
+                render(app);
+                points.changed = 0;
+        }
 
         return 1;
 }
@@ -399,7 +404,6 @@ int main() {
 
 
         AppSetTick(app, Tick);
-        AppSetRendererTick(app, render);
         AppSetTps(app, TPS);
         AppMainloop(app);
 
