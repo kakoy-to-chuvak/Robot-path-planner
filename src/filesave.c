@@ -176,34 +176,34 @@ void __ParsePTS(PArray *_Points, FILE *_Stream) {
         }
 }
 
-void __ParseJSON(PArray *_Points, FILE *_Stream) {
-        float x = 0;
-        float y = 0;
-        float angle = 0;
+// void __ParseJSON(PArray *_Points, FILE *_Stream) {
+//         float x = 0;
+//         float y = 0;
+//         float angle = 0;
 
-        // get file size
-        fseek(_Stream, 0 , SEEK_END);
-        long file_size = ftell(_Stream);
-        fseek(_Stream, 0, SEEK_SET);
+//         // get file size
+//         fseek(_Stream, 0 , SEEK_END);
+//         long file_size = ftell(_Stream);
+//         fseek(_Stream, 0, SEEK_SET);
 
-        if ( file_size > 134217728 ) {
-                LogNotice("ShowOpenFIleDialog (LoadPoints)", "File too large (128MB)");
-                return;
-        }
+//         if ( file_size > 134217728 ) {
+//                 LogNotice("ShowOpenFIleDialog (LoadPoints)", "File too large (128MB)");
+//                 return;
+//         }
 
-        char *buffer = (char*)malloc(file_size + 1);
+//         char *buffer = (char*)malloc(file_size + 1);
 
-        if ( fread(buffer, 1, file_size, _Stream) != file_size ) {
-                LogNotice("ShowOpenFIleDialog (LoadPoints)", "couldn`t read file");
-                free(buffer);
-                return;
-        }
-
-
+//         if ( fread(buffer, 1, file_size, _Stream) != file_size ) {
+//                 LogNotice("ShowOpenFIleDialog (LoadPoints)", "couldn`t read file");
+//                 free(buffer);
+//                 return;
+//         }
 
 
-        free(buffer);
-}
+
+
+//         free(buffer);
+// }
 
 
 void LoadPoints(PArray* _Points) {

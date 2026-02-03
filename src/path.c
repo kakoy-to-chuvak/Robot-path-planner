@@ -6,12 +6,12 @@ bool _PointUnderMouse(SDL_FPoint cords, SDL_FPoint mouse_cords, float r) {
 }
 
 
+#define SGN(X) ( ( X > 0 ) - ( X < 0 ) )
+#define COS_PI_8 (0.92387953251128675612818318939679f)   // cos(PI/8)
+#define COS_3_PI_8 (0.3826834323650897717284599840304f)  // cos(PI*3/8)
 
-
-static float start_x = 0;
-static float start_y = 0;
-static float mouse_point_x = 0;
-static float mouse_point_y = 0;
+static SDL_FPoint start_point;
+static SDL_FPoint mouse_point;
 
 SDL_FPoint CordsToBox(SDL_FPoint cords, SDL_FRect texture_box) {
         cords.x -= texture_box.x;
@@ -137,10 +137,29 @@ void RenderPath(SDL_Renderer *renderer, SDL_Texture *point_texture, PArray *poin
 
 
 
+SDL_FPoint _GetStraightPos(SDL_FPoint pos, SDL_FPoint source_point) {           // fixing position in 8 directions (S,W,E,N,SW,SE,NW,NE):
+        SDL_FPoint Vd = Vector_Sub(pos, source_point);                          //     *         ^ y       *
+        float cos_alfa = Vector_Cos(Vd, (SDL_FPoint){0, 1});                    //       *       |       *
+                                                                                //         *     |     *
+        if ( fabs(cos_alfa) > COS_PI_8 ) {                                      //           *   |   *
+                pos.x = source_point.x;                                         //             * | *
+        } else if ( fabs(cos_alfa) < COS_3_PI_8 ) {                             //---------------*--------------> x
+                pos.y = source_point.y;                                         //             * | *
+        } else if ( SGN( Vd.y ) == SGN( Vd.x ) ) {                              //           *   |   *
+                Vd.x = ( Vd.x + Vd.y ) / 2;                                     //         *     |     *
+                Vd.y = Vd.x;                                                    //       *       |       *
+                pos = Vector_Sum(Vd, source_point);                             //     *         |         *
+        } else {
+                Vd.x = ( Vd.x - Vd.y ) / 2;
+                Vd.y = -Vd.x;
+                pos = Vector_Sum(Vd, source_point);
+        }
+
+        return pos;
+}
 
 void MovePoint(Point *point, SDL_FPoint pos, bool shift_pressed, bool ctrl_pressed, bool alt_pressed) {
-        pos.x += mouse_point_x;
-        pos.y += mouse_point_y;
+        
 
         if ( ctrl_pressed && point->prev && point->next ) {
                 SDL_FPoint P1M = Vector_Sub(pos, point->prev->cords);
@@ -159,25 +178,13 @@ void MovePoint(Point *point, SDL_FPoint pos, bool shift_pressed, bool ctrl_press
                 else
                         pos = Vector_Sum(pos, P2);
         } else if ( alt_pressed && shift_pressed && point->next ) {
-                SDL_FPoint next_cords = point->next->cords;
-                SDL_FPoint Vd = Vector_Sub(pos, next_cords);
-                if ( fabs(Vd.x) < fabs(Vd.y) )
-                        pos.x = next_cords.x;
-                else
-                        pos.y = next_cords.y;
+                pos = _GetStraightPos(pos, point->next->cords);
         } else if ( alt_pressed && point->prev ) {
-                SDL_FPoint prev_cords = point->prev->cords;
-                SDL_FPoint Vd = Vector_Sub(pos, prev_cords);
-                if ( fabs(Vd.x) < fabs(Vd.y) )
-                        pos.x = prev_cords.x;
-                else
-                        pos.y = prev_cords.y;
+                pos = _GetStraightPos(pos, point->prev->cords);
         } else if ( shift_pressed ) {
-                if ( fabs(pos.x-start_x) > fabs(pos.y-start_y) ) {
-                        pos.y = start_y;
-                } else {
-                        pos.x = start_x;
-                }
+                pos = _GetStraightPos(pos, start_point);
+        } else {
+                pos = Vector_Sum(pos, mouse_point);
         }
 
         if ( pos.x < 0 )
@@ -246,11 +253,9 @@ bool CheckPoint(PArray *points, Point *point, SDL_FPoint mouse_pos, bool mouse_p
         if ( _PointUnderMouse(point->cords, mouse_pos, fixed_radius) ) {
                 if ( mouse_pressed && prev_mouse_state == 0 ) {
                         new = PSTATE_SELECTED;
-                        start_x = point->cords.x;
-                        start_y = point->cords.y;
+                        start_point = point->cords;
 
-                        mouse_point_x = start_x - mouse_pos.x;
-                        mouse_point_y = start_y - mouse_pos.y;
+                        mouse_point = Vector_Sub(start_point, mouse_pos);
                 } else {
                         new = PSTATE_UNDER_MOUSE;
                 }
