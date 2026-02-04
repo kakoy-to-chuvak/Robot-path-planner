@@ -119,8 +119,7 @@ int render(APP *app) {
 }
 
 
-int setup(APP *app) {
-
+int setup(APP *app) {   
         LogDebug("setup", "IMG_Load: loading [images/point.png] to [tmp_surf]" );
         SDL_Surface *tmp_surf = IMG_Load("images/point.png");
         if ( NULL == tmp_surf ) {
@@ -276,6 +275,15 @@ int Tick(APP *app) {
                                                         break;
 
                                                 ShowOpenFIleDialog(NULL, NULL, &points);
+                                                break;
+                                        case SDL_SCANCODE_F11:
+                                                if ( SDL_GetWindowFlags(app->Window) & SDL_WINDOW_MAXIMIZED )
+                                                        SDL_RestoreWindow(app->Window);
+                                                else
+                                                        SDL_MaximizeWindow(app->Window);
+
+                                                break;
+
                                         default:
                                                 break;
                                 }
