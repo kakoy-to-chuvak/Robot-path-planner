@@ -151,7 +151,7 @@ int setup(APP *app) {
         }
 
         LogDebug("setup", "Label_New: creating label [point_text]" );
-        point_text = Label_New(app->Renderer, "fonts/Hasklig-Black.ttf", "(0, 0)", TEXT_SIZE, TEXT_COLOR_Black, LABEL_PARAM_BORDER, TEXT_PARAMS);
+        point_text = Label_New(app->Renderer, "fonts/" POINT_CORDS_FONT, "(0, 0)", TEXT_SIZE, TEXT_COLOR_Black, LABEL_PARAM_BORDER, TEXT_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
                 return 0;
@@ -160,21 +160,21 @@ int setup(APP *app) {
 
         // Menu
         LogDebug("setup", "Label_New: creatng menu label [0]" );
-        menu_labels[0] = Label_New(app->Renderer, "fonts/Hasklig-Regular.ttf", "Add point", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
+        menu_labels[0] = Label_New(app->Renderer, "fonts/" MENU_TEXT_FONT, "Add point", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
                 return 0;
         }
         
         LogDebug("setup", "Label_New: creatng menu label [1]" );
-        menu_labels[1] = Label_New(app->Renderer, "fonts/Hasklig-Regular.ttf", "Add to start", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
+        menu_labels[1] = Label_New(app->Renderer, "fonts/" MENU_TEXT_FONT, "Add to start", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
                 return 0;
         }
 
         LogDebug("setup", "Label_New: creatng menu label [2]" );
-        menu_labels[2] = Label_New(app->Renderer, "fonts/Hasklig-Regular.ttf", "Delete point", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
+        menu_labels[2] = Label_New(app->Renderer, "fonts/" MENU_TEXT_FONT, "Delete point", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
                 return 0;

@@ -7,6 +7,9 @@
 #define APP_WIDTH 810 
 #define APP_HEIGHT 540
 
+#define POINT_CORDS_FONT  "Hasklig-Black.ttf"
+#define MENU_TEXT_FONT    "Hasklig-Regular.ttf"
+
 #define TPS 60
 
 #define TEXT_SIZE (35)
