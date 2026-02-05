@@ -48,7 +48,6 @@ PArray points = {
         1,
         NULL,
         NULL,
-        NULL,
         "",
         FILE_FORMAT_UNDEFINED,
 };
@@ -349,7 +348,7 @@ int Tick(APP *app) {
                 menu->active = 1;
                 points.changed = 1;
 
-                args.point = (Point*)( (uint64_t)points.selected_point | (uint64_t)points.selected_line );
+                args.point = points.selected_point;
 
                 if ( args.point == NULL ) {
                         menu_buttons[2]->active = 0;

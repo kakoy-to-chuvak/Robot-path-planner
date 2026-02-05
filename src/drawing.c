@@ -32,12 +32,15 @@ void RenderLine(SDL_Renderer *renderer, SDL_FPoint P0, SDL_FPoint P1, int32_t ra
 }
 
 
-void RenderArrow(SDL_Renderer *renderer, SDL_FPoint P0, SDL_FPoint P1, double base, SDL_FColor arrow_color, int32_t P1_radius) {
+void RenderArrow(SDL_Renderer *renderer, SDL_FPoint P0, SDL_FPoint P1, double base, int32_t P1_radius) {
         SDL_FPoint Pa = Vector_Norm( Vector_Sub(P1, P0) );
 
         P1 = Vector_Sub(P1, Vector_Mult_scl(Pa, P1_radius + base));
 
         SDL_Vertex vertex[3];
+
+        SDL_FColor arrow_color;
+        SDL_GetRenderDrawColorFloat(renderer, &arrow_color.r, &arrow_color.g, &arrow_color.b, &arrow_color.a);
 
         vertex[0].color = arrow_color;
         vertex[1].color = arrow_color;
@@ -166,14 +169,5 @@ void RenderCross(SDL_Renderer *_Renderer, SDL_FPoint _Center) {
 
 void RenderVector(SDL_Renderer *_Renderer, SDL_FPoint _Start, SDL_FPoint _End, int32_t width, int32_t arrow_width) {
         RenderLine(_Renderer, _Start, _End, width);
-
-        SDL_FColor arrow_color = {
-                0,
-                0,
-                0,
-                0
-        };
-        SDL_GetRenderDrawColorFloat(_Renderer, &arrow_color.r, &arrow_color.g, &arrow_color.b, &arrow_color.a);
-        RenderArrow(_Renderer, _Start, _End, arrow_width, arrow_color, -2*width);
-
+        RenderArrow(_Renderer, _Start, _End, arrow_width, -2*width);
 }

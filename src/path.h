@@ -21,13 +21,16 @@ typedef enum PState {
         PSTATE_NONE_STATE = 0,
         PSTATE_UNDER_MOUSE = 1,
         PSTATE_SELECTED = 2,
+        PSTATE_LINE_UNDER_MOUSE = 3,
+        PSTATE_LINE_SELECTED = 4,
+        PSTATE_VECTOR_UNDER_MOUSE = 5,
+        PSTATE_VECTOR_SELECTED = 6,
 } PState;
 
 typedef struct Point {
         SDL_FPoint cords;
         float angle;
         PState state;
-        PState line_state;
         struct Point *next;
         struct Point *prev;
 } Point;
@@ -43,7 +46,6 @@ typedef struct PArray {
         bool changed;
         Point *points;
         Point *selected_point;
-        Point *selected_line;
         char file_name[MAX_PATH];
         FILESAVE_FORMAT format;
 } PArray;

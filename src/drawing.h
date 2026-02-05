@@ -10,7 +10,7 @@
 
 
 void RenderLine(SDL_Renderer *renderer, SDL_FPoint P0, SDL_FPoint P1, int32_t radius);
-void RenderArrow(SDL_Renderer *renderer, SDL_FPoint P0, SDL_FPoint P1, double base, SDL_FColor arrow_color, int32_t P1_radius);
+void RenderArrow(SDL_Renderer *renderer, SDL_FPoint P0, SDL_FPoint P1, double base, int32_t P1_radius);
 void RenderCircle(SDL_Renderer *renderer, int32_t x0, int32_t y0, int32_t radius);
 void Render_RounderRect(SDL_Renderer *renderer, SDL_FRect rect, int32_t radius);
 void RenderCross(SDL_Renderer *_Renderer, SDL_FPoint _Center);
