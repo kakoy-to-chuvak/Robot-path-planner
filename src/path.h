@@ -56,8 +56,8 @@ void RenderPath(SDL_Renderer *renderer, SDL_Texture *point_texture, PArray *poin
 
 bool CheckMousePos(PArray *points, SDL_FPoint mouse_pos, Parametrs *_Parametrs);
 
-void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line);
-void AddPoint_tostart(PArray *points, SDL_FPoint cords, float *angle);
+void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Parametrs *_Parametrs);
+void AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, Parametrs *_Parametrs);
 void DelPoint(PArray *points, Point *point);
 
 void FreePoints(PArray *_Points);

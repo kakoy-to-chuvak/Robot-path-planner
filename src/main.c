@@ -34,6 +34,8 @@ SDL_Texture *point_texture = NULL;
 
 Parametrs parametrs;
 
+FileSaveArgs file_save_args;
+
 
 PArray points = {
         1,
@@ -57,10 +59,10 @@ void *Menu_AddPoint(void *menu, void *args_vpointer) {
         cords.x -= parametrs.texture_box.x;
         cords.y -= parametrs.texture_box.y;
 
-        cords.x *= BOX_WIDTH / parametrs.texture_box.w;
-        cords.y *= BOX_HEIGHT / parametrs.texture_box.h;
+        cords.x *= parametrs.box_width / parametrs.texture_box.w;
+        cords.y *= parametrs.box_height / parametrs.texture_box.h;
 
-        AddPoint(&points, cords, NULL, args.point);
+        AddPoint(&points, cords, NULL, args.point, &parametrs);
 
         return menu;
 }
@@ -82,10 +84,10 @@ void *Menu_AddPointToStart(void *menu, void *args_vpointer) {
         cords.x -= parametrs.texture_box.x;
         cords.y -= parametrs.texture_box.y;
 
-        cords.x *= BOX_WIDTH / parametrs.texture_box.w;
-        cords.y *= BOX_HEIGHT / parametrs.texture_box.h;
+        cords.x *= parametrs.box_width / parametrs.texture_box.w;
+        cords.y *= parametrs.box_height / parametrs.texture_box.h;
 
-        AddPoint_tostart(&points, cords, NULL);
+        AddPoint_tostart(&points, cords, 0, &parametrs);
 
         return menu;
 }
@@ -254,17 +256,26 @@ int Tick(APP *app) {
                                                 if ( parametrs.ctrl_pressed == 0 )
                                                         break;
 
-                                                if ( parametrs.shift_pressed == 1 || *points.file_name == 0 )
-                                                        ShowSaveFIleDialog(NULL, NULL, &points);
-                                                else
+                                                if ( parametrs.shift_pressed == 1 || *points.file_name == 0 ) {
+                                                        file_save_args = (FileSaveArgs){
+                                                                &points,
+                                                                &parametrs
+                                                        };
+                                                        ShowSaveFIleDialog(NULL, NULL, &file_save_args);
+                                                } else {
                                                         SavePoints(&points);
+                                                }
                                                 
                                                 break;
                                         case SDL_SCANCODE_O:
                                                 if ( parametrs.ctrl_pressed == 0 )
                                                         break;
 
-                                                ShowOpenFIleDialog(NULL, NULL, &points);
+                                                file_save_args = (FileSaveArgs){
+                                                        &points,
+                                                        &parametrs
+                                                };
+                                                ShowOpenFIleDialog(NULL, NULL, &file_save_args);
                                                 break;
                                         case SDL_SCANCODE_F11:
                                                 if ( SDL_GetWindowFlags(app->Window) & SDL_WINDOW_MAXIMIZED )
@@ -372,7 +383,6 @@ int main() {
         }
 
         ParametrsInit(&parametrs, app->Window);
-        printf("%i %i %i %i\n%f %f %f %f\n\n", parametrs.point_radius, parametrs.line_width, parametrs.dir_vector_legth, parametrs.dir_vector_width, parametrs.fixed_point_radius, parametrs.fixed_line_width, parametrs.fixed_dir_vector_legth, parametrs.fixed_dir_vector_width);
 
         if ( 0==setup(app) ) {
                 LogError("main", "setup failed");

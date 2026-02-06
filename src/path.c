@@ -25,22 +25,22 @@ double Safe_Angle(SDL_FPoint vec) {
         }
 }
 
-SDL_FPoint CordsToBox(SDL_FPoint cords, SDL_FRect texture_box) {
-        cords.x -= texture_box.x;
-        cords.y -= texture_box.y;
+SDL_FPoint CordsToBox(SDL_FPoint cords, Parametrs *_Parametrs) {
+        cords.x -= _Parametrs->texture_box.x;
+        cords.y -= _Parametrs->texture_box.y;
 
-        cords.x *= BOX_WIDTH / texture_box.w;
-        cords.y *= BOX_HEIGHT / texture_box.h;
+        cords.x *= _Parametrs->box_width / _Parametrs->texture_box.w;
+        cords.y *= _Parametrs->box_height / _Parametrs->texture_box.h;
 
         return cords;
 }
 
-SDL_FPoint CordsToWindow(SDL_FPoint cords, SDL_FRect texture_box) {
-        cords.x *= texture_box.w /BOX_WIDTH;
-        cords.y *= texture_box.h / BOX_HEIGHT;
+SDL_FPoint CordsToWindow(SDL_FPoint cords, Parametrs *_Parametrs) {
+        cords.x *= _Parametrs->texture_box.w / _Parametrs->box_width;
+        cords.y *= _Parametrs->texture_box.h / _Parametrs->box_height;
         
-        cords.x += texture_box.x;
-        cords.y += texture_box.y;
+        cords.x += _Parametrs->texture_box.x;
+        cords.y += _Parametrs->texture_box.y;
 
         return cords;
 }
@@ -49,7 +49,7 @@ SDL_FPoint CordsToWindow(SDL_FPoint cords, SDL_FRect texture_box) {
 
 
 // --------------------- render functions ---------------------
-void _RenderPointCords(Point *point, LABEL *label, SDL_FRect texture_box) {
+void _RenderPointCords(Point *point, LABEL *label, Parametrs *_Parametrs) {
         if ( point->state == PSTATE_NONE_STATE ) 
                 return;
 
@@ -57,7 +57,7 @@ void _RenderPointCords(Point *point, LABEL *label, SDL_FRect texture_box) {
         snprintf(point_text, sizeof(point_text), "(%.3f, %.3f)", point->cords.x, point->cords.y);
         Label_Update(label, point_text, TEXT_COLOR_Black);
 
-        SDL_FPoint real_cords = CordsToWindow(point->cords, texture_box);
+        SDL_FPoint real_cords = CordsToWindow(point->cords, _Parametrs);
 
         SDL_FRect label_rect = {
                 real_cords.x + 10,
@@ -66,11 +66,11 @@ void _RenderPointCords(Point *point, LABEL *label, SDL_FRect texture_box) {
                 30,
         };
 
-        if ( label_rect.x + label_rect.w + 10 > texture_box.x + texture_box.w ) {
+        if ( label_rect.x + label_rect.w + 10 > _Parametrs->texture_box.x + _Parametrs->texture_box.w ) {
                 label_rect.x = real_cords.x - 10 - label_rect.w;
         }
 
-        if ( label_rect.y + label_rect.h + 10 > texture_box.y + texture_box.h ) {
+        if ( label_rect.y + label_rect.h + 10 > _Parametrs->texture_box.y + _Parametrs->texture_box.h ) {
                 label_rect.y = real_cords.y - 10 - label_rect.h;
         }
 
@@ -79,7 +79,7 @@ void _RenderPointCords(Point *point, LABEL *label, SDL_FRect texture_box) {
 
 
 void _RenderPoint(SDL_Renderer *renderer, Point *point, SDL_Texture *point_texture, Parametrs *_Parametrs) {
-        SDL_FPoint real_cords = CordsToWindow(point->cords, _Parametrs->texture_box);
+        SDL_FPoint real_cords = CordsToWindow(point->cords, _Parametrs);
         SDL_FRect pos = {       
                 real_cords.x - _Parametrs->point_radius, 
                 real_cords.y - _Parametrs->point_radius, 
@@ -113,8 +113,8 @@ void _RenderLine(SDL_Renderer *renderer, Point *point, Parametrs *_Parametrs) {
                 SDL_SetRenderDrawColor(renderer, 255, 90, 90, 255);
         }
 
-        SDL_FPoint window_cords = CordsToWindow(point->cords, _Parametrs->texture_box);
-        SDL_FPoint window_next_cords = CordsToWindow(point->next->cords, _Parametrs->texture_box);
+        SDL_FPoint window_cords = CordsToWindow(point->cords, _Parametrs);
+        SDL_FPoint window_next_cords = CordsToWindow(point->next->cords, _Parametrs);
         
         RenderLine(renderer, window_cords, window_next_cords, _Parametrs->line_width);
         RenderArrow(renderer, window_cords, window_next_cords, _Parametrs->line_arrow_base, _Parametrs->point_radius);
@@ -153,7 +153,7 @@ void RenderPath(SDL_Renderer *renderer, SDL_Texture *point_texture, PArray *poin
                 }
 
                 _RenderPoint(renderer, points->selected_point, point_texture, _Parametrs);
-                _RenderPointCords(points->selected_point, point_label, _Parametrs->texture_box);
+                _RenderPointCords(points->selected_point, point_label, _Parametrs);
 
                 SDL_SetTextureColorMod(point_texture, 0, 0, 0);
         }
@@ -221,14 +221,14 @@ void MovePoint( Point *point, SDL_FPoint pos, Parametrs *_Parametrs ) {
 
         if ( pos.x < 0 )
                 pos.x = 0;
-        else if ( pos.x > BOX_WIDTH )
-                pos.x = BOX_WIDTH;
+        else if ( pos.x > _Parametrs->box_width )
+                pos.x = _Parametrs->box_width;
 
 
         if ( pos.y < 0 )
                 pos.y = 0;
-        else if ( pos.y > BOX_HEIGHT )
-                pos.y = BOX_HEIGHT;
+        else if ( pos.y > _Parametrs->box_height )
+                pos.y = _Parametrs->box_height;
 
 
         point->cords = pos;
@@ -386,7 +386,7 @@ void CheckSelectedPoint(  PArray *points, SDL_FPoint mouse_pos, Parametrs *_Para
 
 
 bool CheckMousePos(PArray *points, SDL_FPoint mouse_pos, Parametrs *_Parametrs) {
-        mouse_pos = CordsToBox(mouse_pos, _Parametrs->texture_box);
+        mouse_pos = CordsToBox(mouse_pos, _Parametrs);
 
         if ( points->selected_point ) {
                 CheckSelectedPoint( points, mouse_pos, _Parametrs );
@@ -436,7 +436,7 @@ bool CheckMousePos(PArray *points, SDL_FPoint mouse_pos, Parametrs *_Parametrs) 
 
 
 
-void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line) {
+void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Parametrs *_Parametrs) {
         Point *new = malloc(sizeof(Point));
         if ( new == NULL ) {
                 LogError("AddPoint", "couldn`n allocate memory");
@@ -445,14 +445,14 @@ void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line) {
 
         if ( cords.x < 0 )
                 cords.x = 0;
-        else if ( cords.x > BOX_WIDTH )
-                cords.x = BOX_WIDTH;
+        else if ( cords.x > _Parametrs->box_width )
+                cords.x = _Parametrs->box_width;
 
 
         if ( cords.y < 0 )
                 cords.y = 0;
-        else if ( cords.y > BOX_HEIGHT )
-                cords.y = BOX_HEIGHT;
+        else if ( cords.y > _Parametrs->box_height )
+                cords.y = _Parametrs->box_height;
 
         *new = (Point){
                 cords,
@@ -508,7 +508,7 @@ void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line) {
         }
 }
 
-void AddPoint_tostart(PArray *points, SDL_FPoint cords, float *angle) {
+void AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, Parametrs * _Parametrs) {
         Point *new = malloc(sizeof(Point));
         if ( new == NULL ) {
                 LogError("AddPoint", "couldn`n allocate memory");
@@ -516,14 +516,14 @@ void AddPoint_tostart(PArray *points, SDL_FPoint cords, float *angle) {
 
         if ( cords.x < 0 )
                 cords.x = 0;
-        else if ( cords.x > BOX_WIDTH )
-                cords.x = BOX_WIDTH;
+        else if ( cords.x > _Parametrs->box_width )
+                cords.x = _Parametrs->box_width;
 
 
         if ( cords.y < 0 )
                 cords.y = 0;
-        else if ( cords.y > BOX_HEIGHT )
-                cords.y = BOX_HEIGHT;
+        else if ( cords.y > _Parametrs->box_height )
+                cords.y = _Parametrs->box_height;
                 
         *new = (Point){
                 cords,
@@ -539,9 +539,7 @@ void AddPoint_tostart(PArray *points, SDL_FPoint cords, float *angle) {
                 new->next->prev = new;
         }
 
-        if ( angle ) {
-                new->angle = *angle;
-        }
+        new->angle = angle;
 }
 
 void DelPoint(PArray *points, Point *point) {

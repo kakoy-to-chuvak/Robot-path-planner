@@ -1,6 +1,19 @@
 #include "parametrs.h"
 
 
+#define POINT_MONITOR_RADIUS 0.008f
+
+#define LINE_WIDTH 6
+#define LINE_ARROW_BASE 20
+
+#define DIR_VECTOR_WIDTH 4
+#define DIR_VECTOR_ARROW_SIZE 10
+
+#define BOX_HEIGHT 2.0f
+#define BOX_WIDTH  3.0f
+
+
+
 void ParametrsInit(Parametrs *_Parametrs, SDL_Window *_Window) {
         _Parametrs->lmb_pressed = 0;
         _Parametrs->rmb_pressed = 0;

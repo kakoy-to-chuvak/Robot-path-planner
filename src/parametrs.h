@@ -33,18 +33,6 @@
 #define MENU_TRIGGER_COLOR ((SDL_Color){0, 123, 208, 255})
 
 
-#define POINT_MONITOR_RADIUS 0.008f
-
-#define LINE_WIDTH 6
-#define LINE_ARROW_BASE 20
-
-#define DIR_VECTOR_WIDTH 4
-#define DIR_VECTOR_ARROW_SIZE 10
-
-#define BOX_HEIGHT 2.0f
-#define BOX_WIDTH  3.0f
-
-
 typedef struct _Parametrs_struct_ {
 
         bool lmb_pressed;
