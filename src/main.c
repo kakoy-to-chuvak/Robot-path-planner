@@ -361,7 +361,7 @@ int Tick(APP *app) {
 
 
 
-int main() {
+int main(int argc, char *argv[] ) {
         Logs_SetFile("logs.log");
         Logs_SetLogLevel(LOG_LEVEL_NOTICE);
         Logs_EnableColors(0);
@@ -388,6 +388,11 @@ int main() {
                 LogError("main", "setup failed");
                 goto app_quit;
         }
+
+        if ( argc == 2 ) {
+                strcpy_s(points.file_name, MAX_PATH, argv[1]);
+                LoadPoints(&points, &parametrs);
+        } 
 
 
         AppSetTick(app, Tick);
