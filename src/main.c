@@ -160,7 +160,7 @@ int setup(APP *app) {
         }
         
         LogDebug("setup", "Label_New: creatng menu label [1]" );
-        menu_labels[1] = Label_New(app->Renderer, "fonts/" MENU_TEXT_FONT, "Add to start", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
+        menu_labels[1] = Label_New(app->Renderer, "fonts/" MENU_TEXT_FONT, "Add point to start", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
                 return 0;
@@ -183,7 +183,7 @@ int setup(APP *app) {
         }
 
         LogDebug("setup", "Menu_SetupButtons & Menu_SetButton: setup menu buttons");
-        Menu_SetupButtons(menu, 6, 200, 30, MENU_BG, MENU_TRIGGER_COLOR, 4, 4, 5, 6);
+        Menu_SetupButtons(menu, 6, 170, 30, MENU_BG, MENU_TRIGGER_COLOR, 4, 4, 5, 6);
         menu_buttons[2] = Menu_SetButton(menu, 2, menu_labels[2], 0, 1, Menu_DelPoint); 
         menu_buttons[1] = Menu_SetButton(menu, 1, menu_labels[1], 0, 1, Menu_AddPointToStart); 
         menu_buttons[0] = Menu_SetButton(menu, 0, menu_labels[0], 0, 1, Menu_AddPoint); 
@@ -328,7 +328,7 @@ int Tick(APP *app) {
         
         CheckMousePos(&points, mouse_pos, &parametrs );
         
-        if ( rmb_clicked && ( menu->active == 0 || Menu_MouseOut(menu, mouse_pos.x, mouse_pos.y) ) ) {
+        if ( rmb_clicked && prev_rmb_state == 0 && ( menu->active == 0 || Menu_MouseOut(menu, mouse_pos.x, mouse_pos.y) ) ) {
                 args.cords = mouse_pos;
 
                 Menu_Move(menu, mouse_pos.x, mouse_pos.y, parametrs.window_w, parametrs.window_h);

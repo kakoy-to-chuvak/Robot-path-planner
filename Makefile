@@ -1,15 +1,15 @@
+SDL_INCLUDE_DIR=C:/SDL/x86_64-w64-mingw32/include
+SDL_LIBS_DIR=C:/SDL/x86_64-w64-mingw32/lib
+SDL_LIBS_EXTENSION=.dll.a
+
+
 SRC_DIR=src
 BUILD_DIR=build
 TARGET_EXEC=main
 
+
+
 SDL_LIBS=SDL3_ttf SDL3_image SDL3
-SDL_INCLUDE_DIR=C:/SDL/x86_64-w64-mingw32/include
-SDL_LIBS_DIR=C:/SDL/x86_64-w64-mingw32/lib
-
-SDL_LIBS_EXTENSION=.dll.a
-
-
-
 SRCS=$(wildcard $(SRC_DIR)/*.c)
 HEADERS=$(wildcard $(SRC_DIR)/*.h)
 
