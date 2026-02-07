@@ -62,21 +62,21 @@ main.exe {file name}
 
 6. Укажите в MakeFile параметры:
    - В переменой **SDL_INCLUDE_DIR** укажите папку с папками с ".h" файлами
-     Ожидаемая структура **SDL_INCLUDE_DIR**:
-     ├── SDL3
-     │   ├── SDL.h
-     │   ├── SDL_assert.h
-     │   └── ∙ ∙ ∙
-     ├── SDL3_image
-     │   └── SDL3_image.h
-     ├── SDL_ttf
-     │   ├── SDL_textengine.h
-     |   └── SDL_ttf.h
+     Ожидаемая структура **SDL_INCLUDE_DIR**:<br/>
+     ├── SDL3<br/>
+     │   ├── SDL.h<br/>
+     │   ├── SDL_assert.h<br/>
+     │   └── ∙ ∙ ∙<br/>
+     ├── SDL3_image<br/>
+     │   └── SDL3_image.h<br/>
+     ├── SDL_ttf<br/>
+     │   ├── SDL_textengine.h<br/>
+     |   └── SDL_ttf.h<br/>
    - В переменой **SDL_LIBS_DIR** укажите папку с объектными файлами динамических библиотек
-     Ожидаемая структура **SDL_LIBS_DIR**:
-     ├── libSDL3.xxx
-     ├── libSDL3_image.xxx
-     └── libSDL3_ttf.xxx
+     Ожидаемая структура **SDL_LIBS_DIR**:<br/>
+     ├── libSDL3.xxx<br/>
+     ├── libSDL3_image.xxx<br/>
+     └── libSDL3_ttf.xxx<br/>
      Где ".xxx" расширение объектного файла динамической библиотеки в вашей ОС
 
    - В переменной **SDL_LIBS_EXTENSION** укажите расширение объектного файла динамической библиотеки в вашей ОС
