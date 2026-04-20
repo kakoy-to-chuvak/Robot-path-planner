@@ -21,8 +21,8 @@ extern "C" {
 
 #define LOG_LEVEL_TRACE     (1)
 #define LOG_LEVEL_DEBUG     (2)
-#define LOG_LEVEL_NOTICE    (3)
-#define LOG_LEVEL_INFO      (4)
+#define LOG_LEVEL_INFO      (3)
+#define LOG_LEVEL_NOTICE    (4)
 #define LOG_LEVEL_WARN      (5)
 #define LOG_LEVEL_ERROR     (6)
 

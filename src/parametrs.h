@@ -8,10 +8,9 @@
 
 #include <SDL3/SDL.h>
 
-#include "crossplatform.h"
 
 #define SDL_INIT_FLAGS (SDL_INIT_VIDEO)
-#define APP_TITLE "Планировщик маршрута"
+#define APP_TITLE "dich"
 
 #define POINT_CORDS_FONT  "Hasklig-Black.ttf"
 #define MENU_TEXT_FONT    "Hasklig-Regular.ttf"

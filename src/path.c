@@ -461,6 +461,7 @@ void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Param
                 return;
         }
 
+        // fix cords
         if ( cords.x < 0 )
                 cords.x = 0;
         else if ( cords.x > _Parametrs->box_width )
@@ -476,12 +477,13 @@ void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Param
                 cords,
                 0,
                 PSTATE_NONE_STATE,
+                NULL_USER_FIELD,
                 NULL,
                 NULL
         };
 
         
-
+        // vector magic to spawn point on line
         if ( line && line->next ) {
                 SDL_FPoint ac = Vector_Sub( cords, line->cords );
                 SDL_FPoint ab = Vector_Sub( line->next->cords, line->cords );
@@ -505,6 +507,7 @@ void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Param
                 return;
         }
 
+        // add point to end of the PArray
         Point *now = points->points;
         if ( now == NULL ) {
                 points->points = new;
@@ -541,6 +544,7 @@ void AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, Parametrs *
                 LogError("AddPoint", "couldn`n allocate memory");
         }
 
+        // fix cords
         if ( cords.x < 0 )
                 cords.x = 0;
         else if ( cords.x > _Parametrs->box_width )
@@ -556,6 +560,7 @@ void AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, Parametrs *
                 cords,
                 0,
                 PSTATE_NONE_STATE,
+                NULL_USER_FIELD,
                 NULL,
                 NULL
         }; 

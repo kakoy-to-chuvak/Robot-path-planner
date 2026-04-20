@@ -19,6 +19,7 @@
 #include "path.h"
 #include "menu.h"
 #include "filesave.h"
+#include "crossplatform.h"
 
 
 
@@ -43,7 +44,6 @@ PArray points = {
         NULL,
         NULL,
         "",
-        FILE_FORMAT_UNDEFINED,
 };
 
 struct menu_args {
@@ -54,32 +54,41 @@ struct menu_args {
 
 // menu buttons functions
 void *Menu_AddPoint(void *menu, void *args_vpointer) {
+        // get args
         struct menu_args args = *((struct menu_args*)args_vpointer);
         SDL_FPoint cords = args.cords;
         
+        // window cords to box cords
         cords.x -= parametrs.texture_box.x;
         cords.y -= parametrs.texture_box.y;
 
         cords.x *= parametrs.box_width / parametrs.texture_box.w;
         cords.y *= parametrs.box_height / parametrs.texture_box.h;
 
+        // Add point
         AddPoint(&points, cords, NULL, args.point, &parametrs);
 
+        // useless return
         return menu;
 }
 
 void *Menu_DelPoint(void *menu, void *args_vpointer) {
+        // get args
         struct menu_args args = *((struct menu_args*)args_vpointer);
         if ( args.point ) {
+                // Del point
                 DelPoint(&points, args.point);
         }
 
+        // useless return
         return menu;
 }
 
 void *Menu_AddPointToStart(void *menu, void *args_vpointer) {
+        // get args
         struct menu_args args = *((struct menu_args*)args_vpointer);
 
+        // window cords to box cords
         SDL_FPoint cords = args.cords;
         
         cords.x -= parametrs.texture_box.x;
@@ -88,8 +97,10 @@ void *Menu_AddPointToStart(void *menu, void *args_vpointer) {
         cords.x *= parametrs.box_width / parametrs.texture_box.w;
         cords.y *= parametrs.box_height / parametrs.texture_box.h;
 
+        // Add point
         AddPoint_tostart(&points, cords, 0, &parametrs);
 
+        // useless return
         return menu;
 }
 
@@ -98,21 +109,29 @@ void *Menu_AddPointToStart(void *menu, void *args_vpointer) {
 int render(APP *app) {
         LogTrace("render", "render");
         
+        // reseting render
         SDL_SetRenderDrawColor(app->Renderer, 0, 0, 0, 255);
         SDL_RenderClear(app->Renderer);
 
+        // render background
         SDL_RenderTexture(app->Renderer, background_texture, NULL, &parametrs.texture_box);
 
+        // render points, lines and vectors
         RenderPath(app->Renderer, point_texture, &points, point_text, &parametrs);
 
+        // render context menu
         Menu_Render(menu);
-        
+
+        // present render
         SDL_RenderPresent(app->Renderer);
         return 1;
 }
 
 
 int setup(APP *app) {
+        LogDebug("setup", "entering setup");
+
+        // load point texture
         LogDebug("setup", "IMG_Load: loading [images/point.png] to [tmp_surf]" );
         SDL_Surface *tmp_surf = IMG_Load("images/point.png");
         if ( NULL == tmp_surf ) {
@@ -120,8 +139,8 @@ int setup(APP *app) {
                 return 0;
         }
 
-        
-        LogDebug("setup", "SDL_CreateTextureFromSurface: creating [point_texture]" );
+        // convert point texture
+        LogDebug("setup", "SDL_CreateTextureFromSurface: create [point_texture]" );
         point_texture = SDL_CreateTextureFromSurface(app->Renderer, tmp_surf);
         SDL_DestroySurface(tmp_surf);
         if ( NULL == point_texture ) {
@@ -129,6 +148,7 @@ int setup(APP *app) {
                 return 0;
         }
         
+        // load background texture
         LogDebug("setup", "IMG_Load: loading [images/ground.png] to [tmp_surf]" );
         tmp_surf = IMG_Load("images/ground.png");
         if ( NULL == tmp_surf ) {
@@ -136,7 +156,8 @@ int setup(APP *app) {
                 return 0;
         }
 
-        LogDebug("setup", "SDL_CreateTextureFromSurface: creating [background_texture]" );
+        // convert background texture
+        LogDebug("setup", "SDL_CreateTextureFromSurface: create [background_texture]" );
         background_texture = SDL_CreateTextureFromSurface(app->Renderer, tmp_surf);
         SDL_DestroySurface(tmp_surf);
         if ( NULL == background_texture ) {
@@ -144,7 +165,8 @@ int setup(APP *app) {
                 return 0;
         }
 
-        LogDebug("setup", "Label_New: creating label [point_text]" );
+        // create label for displaing point cords
+        LogDebug("setup", "Label_New: create label [point_text]" );
         point_text = Label_New(app->Renderer, "fonts/" POINT_CORDS_FONT, "(0, 0)", TEXT_SIZE, TEXT_COLOR_Black, LABEL_PARAM_BORDER, TEXT_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
@@ -152,7 +174,8 @@ int setup(APP *app) {
         }
 
 
-        // Menu
+        // ==== Menu ====
+        // create labels for menu buttons
         LogDebug("setup", "Label_New: creatng menu label [0]" );
         menu_labels[0] = Label_New(app->Renderer, "fonts/" MENU_TEXT_FONT, "Add point", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
         if ( NULL == point_text ) {
@@ -174,8 +197,8 @@ int setup(APP *app) {
                 return 0;
         }
 
-
-        LogDebug("setup", "Menu_New: creating menu: [menu]" );
+        // create context menu
+        LogDebug("setup", "Menu_New: create menu: [menu]" );
         menu = Menu_New(app->Renderer, SDL_PIXELFORMAT_RGBA32,
                 MENU_BG, 5, 0, MENU_BORDER_COLOR);
         if ( NULL == menu ) {
@@ -183,23 +206,22 @@ int setup(APP *app) {
                 return 0;
         }
 
+        // create menu buttons
         LogDebug("setup", "Menu_SetupButtons & Menu_SetButton: setup menu buttons");
         Menu_SetupButtons(menu, 6, 170, 30, MENU_BG, MENU_TRIGGER_COLOR, 4, 4, 5, 6);
         menu_buttons[2] = Menu_SetButton(menu, 2, menu_labels[2], 0, 1, Menu_DelPoint); 
         menu_buttons[1] = Menu_SetButton(menu, 1, menu_labels[1], 0, 1, Menu_AddPointToStart); 
         menu_buttons[0] = Menu_SetButton(menu, 0, menu_labels[0], 0, 1, Menu_AddPoint); 
         
-
+        // fix render
         SDL_SetRenderDrawBlendMode(app->Renderer, SDL_BLENDMODE_BLEND);
         SDL_SetTextureColorMod(point_texture, 0, 0, 0);
 
+        // first render
         LogDebug("setup", "first render");
         render(app);
 
-        LogDebug("setup", "deleting temporary variables");
-        SDL_DestroySurface(tmp_surf);
-
-        LogDebug("setup", "end setup");
+        LogDebug("setup", "Exit setup");
 
         return 1;
 }
@@ -209,14 +231,23 @@ int setup(APP *app) {
 
 
 int Tick(APP *app) {
+        // variables
         SDL_Event event;
         static SDL_FPoint mouse_pos = {
                 0, 0
         };
 
+        static struct menu_args args = {
+                NULL,
+                {0, 0}
+        };
+
+
+        // events
         while ( SDL_PollEvent(&event) ) {
                 switch (event.type) {
                         case SDL_EVENT_QUIT:
+                                // close app
                                 app->is_running = 0;
                                 return 0;
                                 break;
@@ -225,6 +256,7 @@ int Tick(APP *app) {
                                 mouse_pos.y = event.motion.y;
                                 break;
                         case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                                // mouse buttons state
                                 if ( event.button.button == SDL_BUTTON_LEFT ) {
                                         parametrs.lmb_pressed = 1;
                                 } else if ( event.button.button == SDL_BUTTON_RIGHT ) {
@@ -232,6 +264,7 @@ int Tick(APP *app) {
                                 }
                                 break;
                         case SDL_EVENT_MOUSE_BUTTON_UP:
+                                // mouse buttons state
                                 if ( event.button.button == SDL_BUTTON_LEFT ) {
                                         parametrs.lmb_pressed = 0;
                                 } else if ( event.button.button == SDL_BUTTON_RIGHT ) { 
@@ -239,11 +272,14 @@ int Tick(APP *app) {
                                 }
                                 break; 
                         case SDL_EVENT_KEY_DOWN: 
+                                LogTrace("Tick", "Key down. Scancode: %i  Char: '%c'", event.key.scancode, event.key.key);
                                 switch (event.key.scancode) {
                                         case SDL_SCANCODE_ESCAPE:
+                                                // close app
                                                 app->is_running = 0;
                                                 return 0;
                                                 break;
+                                        // keys state
                                         case SDL_SCANCODE_LSHIFT:
                                                 parametrs.shift_pressed = 1;
                                                 break;
@@ -254,35 +290,46 @@ int Tick(APP *app) {
                                                 parametrs.alt_pressed = 1;
                                                 break;
                                         case SDL_SCANCODE_S:
-                                                if ( parametrs.ctrl_pressed == 0 )
+                                                // save file if "ctrl" pressed (ctrl+s)
+                                                if ( parametrs.ctrl_pressed == 0 ) {
                                                         break;
+                                                }
 
-                                                if ( parametrs.shift_pressed == 1 || *points.file_name == 0 ) {
+                                                LogDebug("Tick", "Saving file");
+                                                // open file dialog if no file selected or shift pressed (ctrl+shift+s)
+                                                if ( parametrs.shift_pressed == 1 || *points.file_name == '\0' ) {
                                                         file_save_args = (FileSaveArgs){
                                                                 &points,
                                                                 &parametrs
                                                         };
-                                                        ShowSaveFIleDialog(NULL, NULL, &file_save_args);
+                                                        ShowSaveFIleDialog(NULL, points.file_name, &file_save_args);
                                                 } else {
                                                         SavePoints(&points);
                                                 }
                                                 
                                                 break;
                                         case SDL_SCANCODE_O:
-                                                if ( parametrs.ctrl_pressed == 0 )
+                                                // open file if "ctrl" pressed (ctrl+o)
+                                                if ( parametrs.ctrl_pressed == 0 ) {
                                                         break;
+                                                }
 
                                                 file_save_args = (FileSaveArgs){
                                                         &points,
                                                         &parametrs
                                                 };
-                                                ShowOpenFIleDialog(NULL, NULL, &file_save_args);
+
+                                                LogDebug("Tick", "Opening file");
+                                                ShowOpenFIleDialog(NULL, points.file_name, &file_save_args);
+
                                                 break;
                                         case SDL_SCANCODE_F11:
-                                                if ( SDL_GetWindowFlags(app->Window) & SDL_WINDOW_MAXIMIZED )
+                                                // fullscreen mode
+                                                if ( SDL_GetWindowFlags(app->Window) & SDL_WINDOW_MAXIMIZED ) {
                                                         SDL_RestoreWindow(app->Window);
-                                                else
+                                                } else {
                                                         SDL_MaximizeWindow(app->Window);
+                                                }
 
                                                 break;
 
@@ -291,6 +338,7 @@ int Tick(APP *app) {
                                 }
                                 break;
                         case SDL_EVENT_KEY_UP:
+                                // keys state
                                 switch ( event.key.scancode ) {
                                         case SDL_SCANCODE_LSHIFT:
                                                 parametrs.shift_pressed = 0;
@@ -306,6 +354,7 @@ int Tick(APP *app) {
                                 }
                                 break;
                         case SDL_EVENT_WINDOW_RESIZED:
+                                // fix values for right handle
                                 ParametrsFixValues(&parametrs, app->Window);
                                 points.changed = 1;
                                 break;
@@ -314,27 +363,24 @@ int Tick(APP *app) {
                 }
         }
         
+        // check points changes 
+        CheckMousePos(&points, mouse_pos, &parametrs );
 
         bool lmb_clicked = parametrs.lmb_pressed == 0 && parametrs.prev_lmb_state;
         bool rmb_clicked = parametrs.rmb_pressed == 0 && parametrs.prev_rmb_state;
-
-        static struct menu_args args = {
-                NULL,
-                {0, 0}
-        };
-
         
-        CheckMousePos(&points, mouse_pos, &parametrs );
-        
+        // check menu activation
         if ( rmb_clicked && ( menu->active == 0 || Menu_MouseOut(menu, mouse_pos.x, mouse_pos.y) ) ) {
                 args.cords = mouse_pos;
 
+                // activate menu
                 Menu_Move(menu, mouse_pos.x, mouse_pos.y, parametrs.window_w, parametrs.window_h);
                 menu->active = 1;
                 points.changed = 1;
 
                 args.point = points.selected_point;
 
+                // make label active/inactive
                 if ( args.point == NULL ) {
                         menu_buttons[2]->active = 0;
                         Label_Update(menu_labels[2], "Delete point", TEXT_COLOR_Grey);
@@ -344,15 +390,18 @@ int Tick(APP *app) {
                 }
         }
 
+        // check menu changes
         points.changed |= Menu_CheckUpdate(menu, mouse_pos.x, mouse_pos.y, lmb_clicked | rmb_clicked, &args);
 
-        parametrs.prev_lmb_state = parametrs.lmb_pressed;
-        parametrs.prev_rmb_state = parametrs.rmb_pressed;
-
+        // render if something has changed
         if ( points.changed ) {
                 render(app);
                 points.changed = 0;
         }
+        
+        // get previous state
+        parametrs.prev_lmb_state = parametrs.lmb_pressed;
+        parametrs.prev_rmb_state = parametrs.rmb_pressed;
 
         return 1;
 }
@@ -364,58 +413,72 @@ int main( int argc, char *argv[] ) {
                 return -1;
         }
 
-        char *t = strrchr(argv[0], '\\');
-        if ( t == NULL ) {
-                t = strrchr(argv[0], '/');
-                if ( t == NULL ) {
-                        return -1;
-                }
-        }
-
-        *t = '\0';
-        if ( CRP_chdir(argv[0]) ) {
+        char user_path[MAX_PATH] = "";
+        if ( getcwd(user_path, sizeof(user_path)) == NULL ) {
                 return -1;
         }
 
-        Logs_SetFile("logs.log");
-        Logs_SetLogLevel(LOG_LEVEL_NOTICE);
-        Logs_EnableColors(0);
+        char *last_slash = strrchr(argv[0], '\\');
+        if ( last_slash == NULL ) {
+                last_slash = strrchr(argv[0], '/');
+                if ( last_slash == NULL ) {
+                        return -1;
+                }
+        }
+        *last_slash = '\0';
+        
+        CRP_chdir(argv[0]);
 
+
+        // setup logs
+        Logs_SetFile("logs.log");
+        Logs_SetLogLevel(LOG_LEVEL_DEBUG);
+        Logs_EnableColors(0);
+        
+
+        // init SDL3
         if ( 0==SDL_Init(SDL_INIT_FLAGS) ) {
                 LogError("main", "SDL_Init failed: %s", SDL_GetError());
                 return 0;
         }
 
+        // init SDL_ttf
         if ( 0==TTF_Init() ) {
                 LogError("setup/TTF_Init", "TTF_Init failed: %s", SDL_GetError());
                 return 0;
         }   
 
+        // create new app
         app = AppNew("Планировщик маршрута", 600, 400, SDL_WINDOW_RESIZABLE, NULL);
         if ( NULL==app ) {
                 LogError("main", "AppNew failed");
                 goto app_quit;
         }
 
+        // init parametrs
         ParametrsInit(&parametrs, app->Window);
 
+        // setup everything
         if ( 0==setup(app) ) {
                 LogError("main", "setup failed");
                 goto app_quit;
         }
 
+        CRP_chdir(user_path);
+
+        // opening file from second argument
         if ( argc == 2 ) {
                 strcpy_s(points.file_name, MAX_PATH, argv[1]);
-                points.format = DefineFileFormat(argv[1]);
                 LoadPoints(&points, &parametrs);
         } 
 
-
+        // init app
         AppSetTick(app, Tick);
         AppSetTps(app, TPS);
         AppMainloop(app);
-
+        
         app_quit:
+        // free objects and quit app
         FreePoints(&points);
         
         Label_Free(point_text);

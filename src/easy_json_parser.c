@@ -1,20 +1,22 @@
 #include "easy_json_parser.h"
 
 
+
 #define NULL_TOKEN ((Token){NULL, TKNTP_UNDEFINED})
 #define IS_SPACE(X)  ( X == ' ' || X == '\t' || X == '\n' )
 
 enum TokenType {
-        TKNTP_COMMA           = 0,
-        TKNTP_COLON           = 1,
-        TKNTP_OPEN_BRACKET    = 2,
-        TKNTP_CLOSE_BRACKET   = 3,
-        TKNTP_OPEN_F_BRACKET  = 4,
-        TKNTP_CLOSE_F_BRACKET = 5,
-        TKNTP_KEY             = 7,
-        TKNTP_VALUE           = 8,
-        TKNTP_ELEMENT         = 200,
-        TKNTP_UNDEFINED       = -10
+        TKNTP_COMMA,
+        TKNTP_COLON,
+        TKNTP_OPEN_BRACKET,
+        TKNTP_CLOSE_BRACKET,
+        TKNTP_OPEN_F_BRACKET,
+        TKNTP_CLOSE_F_BRACKET,
+        TKNTP_STRING,
+        TKNTP_NUMBER,
+        TKNTP_TRUE,
+        TKNTP_FALSE,
+        TKNTP_UNDEFINED = -1,
 };
 
 typedef struct Token {
@@ -23,6 +25,25 @@ typedef struct Token {
         struct Token *prev;
         struct Token *next;
 } Token;
+
+
+enum ObjectType {
+        JSON_LIST,
+        JSON_DICT,
+        JSON_STRING,
+        JSON_NUMBER,
+        JSON_TRUE,
+        JSON_FALSE,
+};
+
+typedef struct JsonObject {
+        char *key;
+        char *value;
+        enum ObjectType type;
+        struct JsonObject *childs;
+        struct JsonObject *next;
+        struct JsonObject *prev;
+} JsonObject;
 
 
 
@@ -45,18 +66,22 @@ void FreeTokens(Token *_Tokens) {
 
 
 
-Token *_GetToken(char **_Buffer, enum TokenType _PrevType) {
+Token *_GetToken(char **_Buffer) {
         if ( **_Buffer == '\0' ) {
                 return NULL;
         }
 
         char *now = *_Buffer;
         size_t len = 1;
-        enum TokenType type = TKNTP_UNDEFINED;
         
         bool string_opened = 0;
         char *lf_space = NULL; // last-first space
 
+        // allocate memory for token object
+        Token *new_token = calloc(1, sizeof(Token));
+        if ( new_token == NULL ) {
+                return NULL;
+        }
 
         // trim token
         while ( IS_SPACE(*now) ) {
@@ -71,32 +96,38 @@ Token *_GetToken(char **_Buffer, enum TokenType _PrevType) {
                 case '\0':
                         return NULL;
                 case ':':
-                        type = TKNTP_COLON;
+                        new_token->type = TKNTP_COLON;
                         goto create_token;
                 case '[':
-                        type = TKNTP_OPEN_BRACKET;
+                        new_token->type = TKNTP_OPEN_BRACKET;
                         goto create_token;
                 case ']':
-                        type = TKNTP_CLOSE_BRACKET;
+                        new_token->type = TKNTP_CLOSE_BRACKET;
                         goto create_token;
                 case '{':
-                        type = TKNTP_OPEN_F_BRACKET;
+                        new_token->type = TKNTP_OPEN_F_BRACKET;
                         goto create_token;
                 case '}':
-                        type = TKNTP_CLOSE_F_BRACKET;
+                        new_token->type = TKNTP_CLOSE_F_BRACKET;
                         goto create_token;
                 case ',':
-                        type = TKNTP_COMMA;
+                        new_token->type = TKNTP_COMMA;
                         goto create_token;
                 case '\"':
+                        new_token->type = TKNTP_STRING;
                         string_opened = 1;
                         break;
                 default:
-                        break;
-                        
+                        if ( *now >= '0' && *now <= '9' ) {
+                                new_token->type = TKNTP_NUMBER;
+                        } else if ( *now == '-' && now[1] >= '0' && now[1] <= '9' ) {
+                                new_token->type = TKNTP_NUMBER;
+                        } else {
+                                new_token->type = TKNTP_UNDEFINED;
+                        }
+                        break;                
         }
-        type = TKNTP_ELEMENT;
-        
+
         // parsing
         now++;
         bool prev_is_space = 0;
@@ -109,6 +140,10 @@ Token *_GetToken(char **_Buffer, enum TokenType _PrevType) {
                 // check string ("")
                 if ( *now == '\"' && now[-1] != '\\' ) {
                         string_opened = !string_opened;
+                        // if string opened second time
+                        if ( string_opened && new_token->type == TKNTP_STRING ) {
+                                new_token->type = TKNTP_UNDEFINED;
+                        }
                 }
 
                 // find last space for trim string
@@ -121,35 +156,30 @@ Token *_GetToken(char **_Buffer, enum TokenType _PrevType) {
                         prev_is_space = 0;
                         lf_space = NULL;
                 }
-
+                
                 // next char
                 now++;
                 len++;
         }
 
+        // trim string
+        if ( lf_space ) {
+                *lf_space = '\0';
+        }
+
 
         create_token:
-        // allocate memory for token object
-        Token *new_token = calloc(1, sizeof(Token));
-        if ( new_token == NULL ) {
-                return NULL;
-        }
-
-        // define token type
-        if ( type == TKNTP_ELEMENT ) {
-                if ( _PrevType == TKNTP_COLON ) {
-                        new_token->type = TKNTP_VALUE;
-                } else {
-                        new_token->type = TKNTP_KEY;
-                }
-        } else {
-                new_token->type = type;
-        }
-
         if ( string_opened ) {
                 new_token->type = TKNTP_UNDEFINED;
         }
 
+        if ( new_token->type == TKNTP_UNDEFINED ) {
+                if ( len == 4 && strcmp(now, "True") == 0 ) {
+                        new_token->type = TKNTP_TRUE;
+                } else if ( len == 5 && strcmp(now, "False") == 0 ) {
+                        new_token->type = TKNTP_FALSE;
+                }
+        }
 
         // allocate memory for token string
         new_token->token = calloc(len + 1, sizeof(char));
@@ -173,147 +203,134 @@ Token *_GetToken(char **_Buffer, enum TokenType _PrevType) {
 }
 
 
-bool _CheckKey(char *_Key) {
-        if ( _Key == NULL || *_Key != '\"' ) {
-                return 0;
+void _FreeObject(JsonObject *_Object) {
+        while ( _Object != NULL ) {
+                _FreeObject(_Object->childs);
+                JsonObject *temp = _Object->next;
+                free(_Object);
+                _Object = temp;
         }
-
-        _Key++;
-        while ( *_Key ) {
-                if ( *_Key == '\"' && _Key[-1] != '\\' && _Key[1] != '\0' ) {
-                        return 0;
-                }
-                _Key++;
-        }
-
-        return 1;
 }
 
-bool _GetValues(PArray *_Points, Token *_Tokens, Parametrs *_Parametrs) {
-        int opened_brackets = 0;
-        int opened_f_brackets = 0;
-
-
-        SDL_FPoint cords = {
-                -1, -1
-        };
-        float angle = NAN;
-
-        if ( _Tokens->type != TKNTP_OPEN_BRACKET ) {
-                return false;
+JsonObject *_GetObject(Token *_Tokens, Token **_Object_end) {
+        if ( _Tokens == NULL ) {
+                return NULL;
         }
 
-        while ( _Tokens ) {
+        JsonObject *object = calloc(1, sizeof(JsonObject));
+        JsonObject *now_object = object;
 
-                switch ( _Tokens->type ) {
-                        case TKNTP_COLON:
-                                if (    _Tokens->prev == NULL || _Tokens->next == NULL ||
-                                        _Tokens->prev->type != TKNTP_KEY || _Tokens->next->type != TKNTP_VALUE ) 
-                                {
-                                        goto wrong_syntax;
-                                }
-                                char *key = _Tokens->prev->token + 1;
-                                char *value = _Tokens->next->token;
+        get_object:
+        switch ( _Tokens->type ) {
+                case TKNTP_OPEN_BRACKET:
+                        now_object->type = JSON_LIST;
+                        now_object->childs = _GetObject(_Tokens->next, _Object_end);
+                        _Tokens = *_Object_end;
+                        if ( _Tokens == NULL || _Tokens->type != TKNTP_CLOSE_BRACKET ) {
+                                LogNotice("ShowOpenFIleDialog (LoadPoints)", "Couldn`t create JSON object: unclosed bracket");
+                                goto syntax_error;
+                        }
+                        break;
+                
+                case TKNTP_OPEN_F_BRACKET:
+                        now_object->type = JSON_DICT;
+                        now_object->childs = _GetObject(_Tokens->next, _Object_end);
+                        _Tokens = *_Object_end;
+                        if ( _Tokens == NULL || _Tokens->type != TKNTP_CLOSE_F_BRACKET ) {
+                                LogNotice("ShowOpenFIleDialog (LoadPoints)", "Couldn`t create JSON object: unclosed f bracket");
+                                goto syntax_error;
+                        }
+                        break;
 
-                                if ( strcmp(key, "x\"") == 0 ) {
-                                        if ( cords.x != -1 ) {
-                                                goto wrong_syntax;
-                                        }
-                                        cords.x = atof(value);      
-                                } else if ( strcmp(key, "y\"") == 0 ) {
-                                        if ( cords.y != -1 ) {
-                                                goto wrong_syntax;
-                                        }
-                                        cords.y = atof(value);
-                                } else if ( strcmp(key, "angle\"") == 0 ) {
-                                        if ( angle != NAN ) {
-                                                goto wrong_syntax;
-                                        }
-                                        angle = atof(value);
-                                } else {
-                                        goto wrong_syntax;
+                case TKNTP_STRING:
+                        if ( _Tokens->next && _Tokens->next->type == TKNTP_COLON ) {
+                                if ( _Tokens->next->next == NULL || now_object->key != NULL) {
+                                        LogNotice("ShowOpenFIleDialog (LoadPoints)", "Couldn`t create JSON object: wrong sequence after colon");
+                                        goto syntax_error;
                                 }
+                                now_object->key = _Tokens->token;
+                                _Tokens = _Tokens->next->next;
+                                goto get_object;
+                        } else {
+                                now_object->type = JSON_STRING;
+                                now_object->value = _Tokens->token;
+                        }       
+                        break;
 
-                                if ( errno == ERANGE ) {
-                                        goto wrong_syntax;
-                                }
+                case TKNTP_FALSE:
+                        now_object->type = JSON_FALSE;
+                        now_object->value = _Tokens->token;
+                        break;
+                
+                case TKNTP_TRUE:
+                        now_object->type = JSON_TRUE;
+                        now_object->value = _Tokens->token;
+                        break;
+
+                case TKNTP_NUMBER:
+                        now_object->type = JSON_TRUE;
+                        now_object->value = _Tokens->token;
+                        break;
+                
+                default:
+                        LogNotice("ShowOpenFIleDialog (LoadPoints)", "Couldn`t create JSON object: undefined token type");
+                        goto syntax_error;
+                        
+        }
+
+        _Tokens = _Tokens->next;
+        if ( _Tokens && _Tokens->type == TKNTP_COMMA ) {
+                now_object->next = calloc(1, sizeof(JsonObject));
+                now_object->next->prev = now_object;
+                now_object = now_object->next;
+                _Tokens = _Tokens->next;
+                goto get_object;
+        }
+        
+        *_Object_end = _Tokens;
+        return object;
+
+
+        syntax_error:
+        _FreeObject(object);
+        *_Object_end = NULL;
+        return NULL;
+}
+
+
+void _PrintObject(JsonObject *_Object, int _Deep) {
+        while ( _Object ) {
+                printf("%*s", _Deep*4, "");
+                if ( _Object->key ) {
+                        printf("%s: ", _Object->key);
+                }
+                switch ( _Object->type ) {
+                        case JSON_DICT:
+                                printf("{\n");
+                                _PrintObject(_Object->childs, _Deep+1);
+                                printf("%*s}", _Deep*4, "");
                                 break;
-                        case TKNTP_OPEN_BRACKET:
-                                opened_brackets++;
-                                break;
-                        case TKNTP_OPEN_F_BRACKET:
-                                opened_f_brackets++;
-                                break;
-                        case TKNTP_CLOSE_BRACKET:
-                                opened_brackets--;
-                                break;
-                        case TKNTP_CLOSE_F_BRACKET:
-                                opened_f_brackets--;
-                                break;
-                        case TKNTP_KEY:
-                                if (    _CheckKey( _Tokens->token ) == 0 || _Tokens->prev == NULL || _Tokens->next == NULL ||
-                                        !( _Tokens->next->type == TKNTP_COLON || _Tokens->prev->type == TKNTP_OPEN_BRACKET || 
-                                        _Tokens->prev->type == TKNTP_COMMA || _Tokens->prev->type == TKNTP_OPEN_F_BRACKET ) ) 
-                                {       
-                                        goto wrong_syntax;
-                                }
-                                break;
-                        case TKNTP_VALUE:
-                                if (    _Tokens->prev == NULL || _Tokens->next == NULL ||
-                                        !( _Tokens->prev->type == TKNTP_COLON || _Tokens->next->type == TKNTP_CLOSE_BRACKET || 
-                                        _Tokens->next->type == TKNTP_COMMA || _Tokens->next->type == TKNTP_CLOSE_F_BRACKET ) ) 
-                                {       
-                                        goto wrong_syntax;
-                                }
-                                break;
-                        case TKNTP_COMMA:
-                                if (    _Tokens->prev == NULL || _Tokens->next == NULL || 
-                                        _Tokens->prev->type == TKNTP_OPEN_BRACKET || _Tokens->prev->type == TKNTP_OPEN_F_BRACKET || 
-                                        _Tokens->next->type == TKNTP_CLOSE_BRACKET || _Tokens->next->type == TKNTP_CLOSE_F_BRACKET )
-                                {       
-                                        goto wrong_syntax;
-                                }
+
+                        case JSON_LIST:
+                                printf("[\n");
+                                _PrintObject(_Object->childs, _Deep+1);
+                                printf("%*s]", _Deep*4, "");
                                 break;
                         
                         default:
-                                goto wrong_syntax;
+                                printf("%s", _Object->value);
+                                break;
                 }
 
-
-
-
-                if (    opened_brackets > 1 || opened_brackets < 0 
-                        || opened_f_brackets > 1 || opened_f_brackets < 0 ) 
-                {       
-                        goto wrong_syntax;
+                _Object = _Object->next;
+                if ( _Object ) {
+                        putc(',', stdout);
                 }
-
-                if ( _Tokens->type == TKNTP_CLOSE_F_BRACKET ) {
-                        if ( cords.x == -1 || cords.y == -1 || angle == NAN) {
-                                goto wrong_syntax;
-                        }
-
-                        AddPoint(_Points, cords, &angle, NULL, _Parametrs);
-                        cords = (SDL_FPoint){
-                                -1, -1
-                        };
-                        angle = 0;
-                }
-
-                _Tokens = _Tokens->next;
+                putc('\n', stdout);
         }
-
-
-        if ( opened_brackets != 0 || opened_f_brackets != 0 ) {
-                goto wrong_syntax;
-        }
-
-        return 1;
-
-        wrong_syntax:
-        FreePoints(_Points);
-        return 0;
 }
+
+
 
 
 void __ParseJSON(PArray *_Points, FILE *_Stream, Parametrs *_Parametrs) {
@@ -341,11 +358,15 @@ void __ParseJSON(PArray *_Points, FILE *_Stream, Parametrs *_Parametrs) {
         buffer[buffer_size] = '\0';
 
         char *token_bufffer = buffer;
-        Token *array = _GetToken(&token_bufffer, TKNTP_UNDEFINED);
-        array->prev = NULL;
-        Token *token = array;
+
+        // create array of tokens
+        LogDebug("ShowOpenFIleDialog (LoadPoints)", "Tokenizing JSON");
+        Token *token_list = _GetToken(&token_bufffer);
+        token_list->prev = NULL;
+        Token *token = token_list;
         while ( token ) {
-                token->next = _GetToken(&token_bufffer, token->type);
+                // printf(" %2i | %s\n", token->type, token->token);
+                token->next = _GetToken(&token_bufffer);
                 if ( token->next == NULL ) {
                         break;
                 }
@@ -353,9 +374,21 @@ void __ParseJSON(PArray *_Points, FILE *_Stream, Parametrs *_Parametrs) {
                 token = token->next;
         }
 
-        _GetValues(_Points, array, _Parametrs);
+        Token *object_end = NULL;
+        JsonObject *object = _GetObject(token_list, &object_end);
+        if ( object == NULL ) {
+                LogNotice("ShowOpenFIleDialog (LoadPoints)", "couldn`t create JSON object");
+        }
 
-        FreeTokens(array);
+        LogNotice("ShowOpenFIleDialog (LoadPoints)", "printing object");
+        _PrintObject(object, 0);
 
+        // free allocated mem
+        _FreeObject(object);
+        FreePoints(_Points);
+        AddPoint(_Points, (SDL_FPoint){0,0}, (float*)&file_size, NULL, _Parametrs);
+        FreeTokens(token_list);
         free(buffer);
 }
+
+

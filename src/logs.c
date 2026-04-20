@@ -28,8 +28,8 @@ static int logs_enabled = 1;
 static int colors_enabled = 0;
 
 // массивы наименований
-static LOG_COLOR level_colors[10] =     {   LOG_COLOR_White,   LOG_COLOR_White, LOG_COLOR_White, LOG_COLOR_White, LOG_COLOR_Bright_White, LOG_COLOR_Bright_Yellow, LOG_COLOR_Bright_Red};
-static char *level_names[10] =          {   "UNDEFINED",       "TRACE",         "DEBUG",         "NOTICE",        "INFO",                 "WARN",                  "ERROR"};
+static LOG_COLOR level_colors[10] =     {   LOG_COLOR_White,   LOG_COLOR_White, LOG_COLOR_White, LOG_COLOR_Bright_White, LOG_COLOR_White, LOG_COLOR_Bright_Yellow, LOG_COLOR_Bright_Red};
+static char *level_names[10] =          {   "UNDEFINED",       "TRACE",         "DEBUG",         "INFO",                 "NOTICE",        "WARN",                  "ERROR"};
 // static FILE *level_streams[10] = { stdout, stdout, stdout, stdout, stdout, stdout, stdout };
 
 // API

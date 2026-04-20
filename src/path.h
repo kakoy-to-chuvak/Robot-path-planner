@@ -14,8 +14,9 @@
 #include "label.h"
 
 
+#define NULL_USER_FIELD ((UserField){NULL,NULL,NULL})
 
-
+// State of point
 typedef enum PState {
         PSTATE_UNDEFINED = -1,
         PSTATE_NONE_STATE = 0,
@@ -27,40 +28,46 @@ typedef enum PState {
         PSTATE_VECTOR_SELECTED = 6,
 } PState;
 
+// custom user json field
+typedef struct UserField {
+        char *key;
+        char *value;
+        struct UserField *next;
+} UserField;
+
+// point struct
 typedef struct Point {
         SDL_FPoint cords;
         float angle;
         PState state;
+        UserField user_fields;
+
         struct Point *next;
         struct Point *prev;
 } Point;
 
-typedef enum FILESAVE_FORMAT {
-        FILE_FORMAT_JSON = 0,
-        FILE_FORMAT_TXT = 1,
-        FILE_FORMAT_CSV = 2,
-        FILE_FORMAT_UNDEFINED = 3,
-} FILESAVE_FORMAT;
-
+// array of points
 typedef struct PArray {
         bool changed;
         int count;
         Point *points;
         Point *selected_point;
         char file_name[MAX_PATH];
-        FILESAVE_FORMAT format;
 } PArray;
 
 
 
 void RenderPath(SDL_Renderer *renderer, SDL_Texture *point_texture, PArray *points, LABEL *point_label, Parametrs *_Parametrs);
 
+// Check events and move points
 bool CheckMousePos(PArray *points, SDL_FPoint mouse_pos, Parametrs *_Parametrs);
 
+// adding / removing points
 void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Parametrs *_Parametrs);
 void AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, Parametrs *_Parametrs);
 void DelPoint(PArray *points, Point *point);
 
+// Freeing points in PArray
 void FreePoints(PArray *_Points);
 
 
