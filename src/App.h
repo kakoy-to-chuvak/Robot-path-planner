@@ -48,7 +48,6 @@ typedef struct APP
 
 APP *AppNew(const char *title, int width, int height, SDL_WindowFlags window_flags, const char *icon);
 void AppSetTick(APP *app, int(*Tick)(APP*));
-void AppSetRendererTick(APP *app, int(*_Tick)(APP*));
 int AppMainloop(APP *app);
 
 

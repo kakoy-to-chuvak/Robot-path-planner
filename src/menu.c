@@ -2,11 +2,11 @@
 
 
 float fix_cord(float x, float w, float app_x) {
-        float d = x + w - app_x;
-        if ( d > 0 )
-                return x - w;
-        else 
-                return x;
+    if (x + w > app_x) 
+        return app_x - w;
+    if (x < 0) 
+        return 0;
+    return x;
 }
 
 

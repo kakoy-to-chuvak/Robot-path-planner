@@ -450,15 +450,15 @@ bool CheckMousePos(PArray *points, SDL_FPoint mouse_pos, Parametrs *_Parametrs) 
 
 
 
-void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Parametrs *_Parametrs) {
+Point * AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, UserField *_Fields, Parametrs *_Parametrs) {
         if ( points == NULL || _Parametrs == NULL ) {
-                return;
+                return NULL;
         }
         
         Point *new = malloc(sizeof(Point));
         if ( new == NULL ) {
                 LogError("AddPoint", "couldn`n allocate memory");
-                return;
+                return NULL;
         }
 
         // fix cords
@@ -477,7 +477,7 @@ void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Param
                 cords,
                 0,
                 PSTATE_NONE_STATE,
-                NULL_USER_FIELD,
+                _Fields,
                 NULL,
                 NULL
         };
@@ -504,7 +504,7 @@ void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Param
                 SDL_FPoint Dv = Vector_Sub(new->cords, new->prev->cords);
                 new->angle = Safe_Angle(Dv);
                 
-                return;
+                return NULL;
         }
 
         // add point to end of the PArray
@@ -515,7 +515,7 @@ void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Param
                         new->angle = *angle;
                 }
                 points->count++;
-                return;
+                return NULL;
         }
 
         while ( now->next ) {
@@ -532,16 +532,19 @@ void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Param
                 new->angle = Safe_Angle(Dv);
         }
         points->count++;
+
+        return new;
 }
 
-void AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, Parametrs * _Parametrs) {
+Point *AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, UserField *_Fields, Parametrs * _Parametrs) {
         if ( points == NULL || _Parametrs == NULL ) {
-                return;
+                return NULL;
         }
 
         Point *new = malloc(sizeof(Point));
         if ( new == NULL ) {
                 LogError("AddPoint", "couldn`n allocate memory");
+                return NULL;
         }
 
         // fix cords
@@ -560,7 +563,7 @@ void AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, Parametrs *
                 cords,
                 0,
                 PSTATE_NONE_STATE,
-                NULL_USER_FIELD,
+                _Fields,
                 NULL,
                 NULL
         }; 
@@ -573,6 +576,25 @@ void AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, Parametrs *
 
         new->angle = angle;
         points->count++;
+
+        return new;
+}
+
+void FreeUserFields(UserField *_Field) {
+        while ( _Field ) {
+                if ( _Field->key )
+                        free(_Field->key);
+                if ( _Field->value )
+                        free(_Field->value);
+                UserField *tmp = _Field->next;
+                free(_Field);
+                _Field = tmp;
+        }
+}
+
+void FreePoint(Point *_Point) {
+        FreeUserFields(_Point->user_fields);
+        free(_Point);
 }
 
 void DelPoint(PArray *points, Point *point) {
@@ -590,7 +612,7 @@ void DelPoint(PArray *points, Point *point) {
                 point->next->prev = point->prev;
         }
 
-        free(point);
+        FreePoint(point);
         points->count--;
 }
 
@@ -605,7 +627,7 @@ void FreePoints(PArray *_Points) {
 
         while ( now ) {
                 Point *next = now->next;
-                free(now);
+                FreePoint(now);
                 now = next;
         }
 

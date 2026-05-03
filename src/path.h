@@ -40,7 +40,7 @@ typedef struct Point {
         SDL_FPoint cords;
         float angle;
         PState state;
-        UserField user_fields;
+        UserField *user_fields;
 
         struct Point *next;
         struct Point *prev;
@@ -63,11 +63,13 @@ void RenderPath(SDL_Renderer *renderer, SDL_Texture *point_texture, PArray *poin
 bool CheckMousePos(PArray *points, SDL_FPoint mouse_pos, Parametrs *_Parametrs);
 
 // adding / removing points
-void AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Parametrs *_Parametrs);
-void AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, Parametrs *_Parametrs);
+Point * AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, UserField *_Fields, Parametrs *_Parametrs);
+Point * AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, UserField *_Fields, Parametrs *_Parametrs);
 void DelPoint(PArray *points, Point *point);
 
 // Freeing points in PArray
+void FreeUserFields(UserField *_Field);
+void FreePoint(Point *_Point) ;
 void FreePoints(PArray *_Points);
 
 

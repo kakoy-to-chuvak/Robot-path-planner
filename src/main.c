@@ -66,7 +66,7 @@ void *Menu_AddPoint(void *menu, void *args_vpointer) {
         cords.y *= parametrs.box_height / parametrs.texture_box.h;
 
         // Add point
-        AddPoint(&points, cords, NULL, args.point, &parametrs);
+        AddPoint(&points, cords, NULL, args.point, NULL, &parametrs);
 
         // useless return
         return menu;
@@ -98,7 +98,7 @@ void *Menu_AddPointToStart(void *menu, void *args_vpointer) {
         cords.y *= parametrs.box_height / parametrs.texture_box.h;
 
         // Add point
-        AddPoint_tostart(&points, cords, 0, &parametrs);
+        AddPoint_tostart(&points, cords, 0, NULL, &parametrs);
 
         // useless return
         return menu;
@@ -409,10 +409,6 @@ int Tick(APP *app) {
 
 
 int main( int argc, char *argv[] ) {
-        if ( argc == 0 ) {
-                return -1;
-        }
-
         char user_path[MAX_PATH] = "";
         if ( getcwd(user_path, sizeof(user_path)) == NULL ) {
                 return -1;
@@ -432,7 +428,7 @@ int main( int argc, char *argv[] ) {
 
         // setup logs
         Logs_SetFile("logs.log");
-        Logs_SetLogLevel(LOG_LEVEL_DEBUG);
+        Logs_SetLogLevel(LOG_LEVEL_NOTICE       );
         Logs_EnableColors(0);
         
 

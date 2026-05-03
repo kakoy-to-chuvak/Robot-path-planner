@@ -22,18 +22,27 @@ void SavePoints(PArray* _Points) {
                 return;
         }
 
-        fputc('[', file);
+        fputs("[\n", file);
         Point *now = _Points->points;
         while ( now ) {
-                fprintf(file, "{\"x\":%.4f,\"y\":%.4f,\"angle\":%.10f},", now->cords.x, now->cords.y, now->angle);
+                fprintf(file, "  {\n    \"x\": %.4f,\n    \"y\": %.4f,\n    \"angle\": %.10f", now->cords.x, now->cords.y, now->angle);
+
+                UserField *field = now->user_fields;
+                while (field) {
+                        fprintf(file, ",\n    \"%s\": %s", field->key, field->value);
+                        field = field->next;
+                }
+                
+                if ( now->next ) {
+                        fprintf(file, "\n  },\n");
+                } else {
+                        fprintf(file, "\n  }\n");
+                }
                 now = now->next;
         }
 
         // close json brecket
-        fseek(file, -1, SEEK_CUR);
-        if ( ftell(file) != 0 ) {
-                fputc(']', file);
-        }
+        fputs("]", file);
         
         // close file
         fclose(file);
@@ -64,12 +73,12 @@ static void SDLCALL __SaveFileDialogCallback(void* userdata, const char* const* 
 
                 // if extension is undefined or not equals ".json"
                 if ( extension == NULL || strcmp(extension, ".json") ) {
-                        strcat_s(args->points->file_name, MAX_PATH, ".json");
+                        strncat(args->points->file_name, ".json", MAX_PATH - strlen(args->points->file_name) - 1);
                 }
         }
         
         // add changes to PArray
-        strcpy_s(args->points->file_name, MAX_PATH, *filelist);
+        strcpy(args->points->file_name, *filelist);
 
         // save PArray
         SavePoints(args->points);

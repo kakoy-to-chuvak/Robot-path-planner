@@ -14,18 +14,15 @@ APP *AppNew(const char *title, int width, int height, SDL_WindowFlags window_fla
         app->Properties.Icon = NULL;
         app->Properties.Title = NULL;
 
-        if ( NULL==title )
-                goto no_title;
+        if ( title ) {
 
-        app->Properties.Title = (char*)malloc(strlen(title)+1);
-        if ( NULL==app->Properties.Title ) {
-                LogError("AppNew/malloc", "malloc failed");
-                goto failure1; 
+                app->Properties.Title = (char*)malloc(strlen(title)+1);
+                if ( NULL==app->Properties.Title ) {
+                        LogError("AppNew/malloc", "malloc failed");
+                        goto failure1; 
+                }
+                strcpy(app->Properties.Title, title);
         }
-        strcpy(app->Properties.Title, title);
-
-        no_title:
-                        
 
         app->Window = SDL_CreateWindow(title, width, height, window_flags);
         if ( NULL==app->Window ) {
@@ -56,10 +53,10 @@ APP *AppNew(const char *title, int width, int height, SDL_WindowFlags window_fla
 
         app->Properties.height = height;
         app->Properties.width = width;
-        app->Properties.preset_tps = 180;
         app->Properties.preset_tps = 60;
         app->is_running = 1;
         app->exit_code = 0;
+        app->Tick = NULL;
 
         return app;
 
