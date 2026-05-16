@@ -56,6 +56,8 @@ typedef struct PArray {
 } PArray;
 
 
+SDL_FPoint BoxCordsToWindow(SDL_FPoint cords, Parametrs *_Parametrs);
+SDL_FPoint WindowCordsToBox(SDL_FPoint cords, Parametrs *_Parametrs);
 
 void RenderPath(SDL_Renderer *renderer, SDL_Texture *point_texture, PArray *points, LABEL *point_label, Parametrs *_Parametrs);
 
@@ -63,8 +65,8 @@ void RenderPath(SDL_Renderer *renderer, SDL_Texture *point_texture, PArray *poin
 bool CheckMousePos(PArray *points, SDL_FPoint mouse_pos, Parametrs *_Parametrs);
 
 // adding / removing points
-Point * AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, UserField *_Fields, Parametrs *_Parametrs);
-Point * AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, UserField *_Fields, Parametrs *_Parametrs);
+Point *AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, UserField *_Fields, Parametrs *_Parametrs);
+Point *AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, UserField *_Fields, Parametrs *_Parametrs);
 void DelPoint(PArray *points, Point *point);
 
 // Freeing points in PArray

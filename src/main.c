@@ -56,15 +56,8 @@ struct menu_args {
 void *Menu_AddPoint(void *menu, void *args_vpointer) {
         // get args
         struct menu_args args = *((struct menu_args*)args_vpointer);
-        SDL_FPoint cords = args.cords;
+        SDL_FPoint cords = WindowCordsToBox(args.cords, &parametrs);
         
-        // window cords to box cords
-        cords.x -= parametrs.texture_box.x;
-        cords.y -= parametrs.texture_box.y;
-
-        cords.x *= parametrs.box_width / parametrs.texture_box.w;
-        cords.y *= parametrs.box_height / parametrs.texture_box.h;
-
         // Add point
         AddPoint(&points, cords, NULL, args.point, NULL, &parametrs);
 
@@ -89,13 +82,7 @@ void *Menu_AddPointToStart(void *menu, void *args_vpointer) {
         struct menu_args args = *((struct menu_args*)args_vpointer);
 
         // window cords to box cords
-        SDL_FPoint cords = args.cords;
-        
-        cords.x -= parametrs.texture_box.x;
-        cords.y -= parametrs.texture_box.y;
-
-        cords.x *= parametrs.box_width / parametrs.texture_box.w;
-        cords.y *= parametrs.box_height / parametrs.texture_box.h;
+        SDL_FPoint cords = WindowCordsToBox(args.cords, &parametrs);
 
         // Add point
         AddPoint_tostart(&points, cords, 0, NULL, &parametrs);

@@ -54,6 +54,10 @@ typedef struct _Parametrs_struct_ {
         float box_width;
         float box_height;
 
+        bool invert_x;
+        bool invert_y;
+        SDL_FPoint center;
+
         int point_radius;
         int point_diametr;
         int line_width;

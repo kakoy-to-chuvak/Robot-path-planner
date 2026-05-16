@@ -37,6 +37,12 @@ void ParametrsInit(Parametrs *_Parametrs, SDL_Window *_Window) {
 
         _Parametrs->box_width = BOX_WIDTH;
         _Parametrs->box_height = BOX_HEIGHT;
+        _Parametrs->invert_x = 0;
+        _Parametrs->invert_y = 1;
+        _Parametrs->center = (SDL_FPoint){
+                BOX_WIDTH / 2.0,
+                BOX_HEIGHT / 2.0
+        };
 
         ParametrsFixValues(_Parametrs, _Window);
 }
