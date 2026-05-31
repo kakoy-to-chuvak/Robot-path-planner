@@ -50,7 +50,9 @@ typedef struct _Parametrs_struct_ {
         int monitor_h;
         int monitor_w;
 
+        SDL_FRect sidebar_box;
         SDL_FRect texture_box;
+
         float field_width;
         float field_height;
 
@@ -79,7 +81,7 @@ typedef struct _Parametrs_struct_ {
 void ParametrsInit(Parametrs *_Parametrs, SDL_Window *_Window);
 void ParametrsFixValues(Parametrs *_Parametrs, SDL_Window *_Window);
 
-void ResizeBgTexture(Parametrs *_Parametrs);
+void ResizeFrames(Parametrs *_Parametrs);
 
 
 #endif  // PARAMETRS_H

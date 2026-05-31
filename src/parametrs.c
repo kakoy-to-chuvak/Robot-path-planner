@@ -57,7 +57,7 @@ void ParametrsFixValues(Parametrs *_Parametrs, SDL_Window *_Window) {
 
         SDL_GetWindowSize(_Window, &_Parametrs->window_w, &_Parametrs->window_h);
 
-        ResizeBgTexture(_Parametrs);
+        ResizeFrames(_Parametrs);
         
         _Parametrs->point_radius = sqrt( _Parametrs->monitor_w * _Parametrs->monitor_w + _Parametrs->monitor_h * _Parametrs->monitor_h ) * POINT_MONITOR_RADIUS;
         _Parametrs->point_diametr = _Parametrs->point_radius * 2;
@@ -83,7 +83,7 @@ void ParametrsFixValues(Parametrs *_Parametrs, SDL_Window *_Window) {
 }
 
 
-void ResizeBgTexture(Parametrs *_Parametrs) {
+void ResizeFrames(Parametrs *_Parametrs) {
         float k = _Parametrs->field_width / _Parametrs->field_height;
         
         // resize background texture

@@ -20,6 +20,7 @@ double Vector_Abs(SDL_FPoint P);
 SDL_FPoint Vector_Norm(SDL_FPoint P);
 
 double Vector_Cos(SDL_FPoint P1, SDL_FPoint P2);
+double Vector_Angle(SDL_FPoint P1);
 
 SDL_FPoint Vector_Rotate(SDL_FPoint P, double rad);
 SDL_FPoint Vector_Rotate180(SDL_FPoint P);

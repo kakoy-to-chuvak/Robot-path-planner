@@ -49,6 +49,24 @@ double Vector_Cos(SDL_FPoint P1, SDL_FPoint P2) {
         return Vector_DotProd(P1, P2) / ( Vector_Abs(P1) * Vector_Abs(P2) );
 }
 
+double Vector_Angle(SDL_FPoint P) {
+        if ( P.x || P.y ) {
+                float cos_a = Vector_Cos(P, (SDL_FPoint){1, 0});
+                if ( cos_a < -1 ) {
+                        return M_PI;
+                } else if ( cos_a > 1 ) {
+                        return 0; 
+                }
+
+                if ( P.y > 0 ) {
+                        return acos( cos_a );
+                } else {
+                        return -acos( cos_a );
+                }
+        }
+        return 0;
+}
+
 
 SDL_FPoint Vector_Rotate(SDL_FPoint P, double rad) {
         double _Cos = cos(rad);

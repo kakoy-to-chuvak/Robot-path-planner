@@ -16,6 +16,29 @@
 
 #define NULL_USER_FIELD ((UserField){NULL,NULL,NULL})
 
+
+typedef enum ACTION_TYPE {
+        DEL_POINT,
+        ADD_POINT,
+        ADD_POINT_TO_START,
+        MOVE_POINT,
+} ACTION_TYPE;
+
+typedef struct ACTION {
+        ACTION_TYPE type;
+        uint32_t id;
+        uint32_t prev_id;
+
+        SDL_FPoint start_cords;
+        float start_angle;
+        
+        SDL_FPoint res_cords;
+        float res_angle;
+
+        struct ACTION *next;
+        struct ACTION *prev;
+} ACTION;
+
 // State of point
 typedef enum PState {
         PSTATE_UNDEFINED = -1,
@@ -41,6 +64,7 @@ typedef struct Point {
         float angle;
         PState state;
         UserField *user_fields;
+        uint32_t id;
 
         struct Point *next;
         struct Point *prev;
@@ -67,12 +91,19 @@ bool CheckMousePos(PArray *points, SDL_FPoint mouse_pos, Parametrs *_Parametrs);
 // adding / removing points
 Point *AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, UserField *_Fields, Parametrs *_Parametrs);
 Point *AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, UserField *_Fields, Parametrs *_Parametrs);
+Point *AddPointAfter(PArray *_Points, uint32_t _Source_id, SDL_FPoint cords, float angle, UserField *_Fields, Parametrs *_Parametrs);
 void DelPoint(PArray *points, Point *point);
 
 // Freeing points in PArray
 void FreeUserFields(UserField *_Field);
 void FreePoint(Point *_Point) ;
 void FreePoints(PArray *_Points);
+
+bool PathUndo(PArray *_Points);
+bool PathRedo(PArray *_Points, Parametrs *_Parametrs);
+bool PathAddAction(ACTION_TYPE _Type, Point *_Point, SDL_FPoint _Start_cord, double _Start_ang);
+void PathClearActions();
+void PathFreeAction(ACTION *_Action);
 
 
 

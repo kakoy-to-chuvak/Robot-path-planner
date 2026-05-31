@@ -319,6 +319,14 @@ int Tick(APP *app) {
                                                 }
 
                                                 break;
+                                        
+                                        case SDL_SCANCODE_Z:
+                                                if ( parametrs.ctrl_pressed ) {
+                                                        printf("ctrl+z\n");
+                                                        PathUndo(&points);
+                                                        points.changed = 1;
+                                                }
+                                                break;
 
                                         default:
                                                 break;
