@@ -322,8 +322,11 @@ int Tick(APP *app) {
                                         
                                         case SDL_SCANCODE_Z:
                                                 if ( parametrs.ctrl_pressed ) {
-                                                        printf("ctrl+z\n");
-                                                        PathUndo(&points);
+                                                        if ( parametrs.shift_pressed ) {
+                                                                PathRedo(&points);
+                                                        } else {
+                                                                PathUndo(&points);
+                                                        }
                                                         points.changed = 1;
                                                 }
                                                 break;
@@ -471,7 +474,7 @@ int main( int argc, char *argv[] ) {
         app_quit:
         // free objects and quit app
         FreePoints(&points);
-        
+        PathClearActions();
         Label_Free(point_text);
 
         ContextMenu_Free(contextmenu);

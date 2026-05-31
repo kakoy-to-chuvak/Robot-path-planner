@@ -34,6 +34,7 @@ bool _RestorePoint(PArray *_Points) {
 
         if ( point == NULL ) {
                 free(new);
+                LogWarn("_RestorePoint", "No point founf with id %u", last_action->prev_id);
                 return 0;
         }
 
@@ -50,6 +51,7 @@ bool _RestorePoint(PArray *_Points) {
 
 bool _DelPoint(PArray *_Points) {
         if ( _Points->points == NULL || last_action->id == 0 ) {
+                LogWarn("_DelPoint", "No point founf with id %u", last_action->id);
                 return 0;
         }
 
@@ -80,6 +82,7 @@ bool _DelPoint(PArray *_Points) {
 
 bool _MoveBack(PArray *_Points) {
        if ( _Points->points == NULL || last_action->id == 0 ) {
+                LogWarn("_MoveBack", "No point founf with id %u", last_action->id);
                 return 0;
         }
 
@@ -97,6 +100,26 @@ bool _MoveBack(PArray *_Points) {
         return 1;
 }
 
+bool _MoveForward(PArray *_Points) {
+       if ( _Points->points == NULL || last_action->id == 0 ) {
+                LogWarn("_MoveForward", "No point founf with id %u", last_action->id);
+                return 0;
+        }
+
+        Point *point = _Points->points;
+        while ( point != NULL && point->id != last_action->id ) {
+                point = point->next;
+        }
+        
+        if  ( point == NULL ) {
+                return 0;
+        }
+
+        point->cords = last_action->res_cords;
+        point->angle = last_action->res_angle;
+        return 1;
+}
+
 
 bool PathUndo(PArray *_Points) {
         if ( last_action == NULL || _Points == NULL ) {
@@ -107,22 +130,22 @@ bool PathUndo(PArray *_Points) {
         switch ( last_action->type ) {
                 case DEL_POINT:
                         res = _RestorePoint(_Points);
-                        printf("_RestorePoint %u->%u\n", last_action->prev_id, last_action->id);
+                        LogDebug("_RestorePoint", "restore point %u->%u. reult: %i\n", last_action->prev_id, last_action->id, res);
                         break;
 
                 case ADD_POINT:
                         res = _DelPoint(_Points);
-                        printf("_DelPoint %u->%u\n", last_action->prev_id, last_action->id);
+                        LogDebug("_DelPoint", "delete point %u->%u. reult: %i\n", last_action->prev_id, last_action->id, res);
                         break;
                 
                 case ADD_POINT_TO_START:
                         res = _DelPoint(_Points);
-                        printf("_DelPoint %u->%u\n", last_action->prev_id, last_action->id);
+                        LogDebug("_DelPoint", "delete point %u->%u. reult: %i\n", last_action->prev_id, last_action->id, res);
                         break;
 
                 case MOVE_POINT:
                         res = _MoveBack(_Points);
-                        printf("_MoveBack %u->%u\n", last_action->prev_id, last_action->id);
+                        LogDebug("_MoveBack", "move point %u->%u. reult: %i\n", last_action->prev_id, last_action->id, res);
                         break;
 
                 default:
@@ -136,8 +159,54 @@ bool PathUndo(PArray *_Points) {
 }
 
 
-bool PathRedo(PArray *_Points, Parametrs *_Parametrs) {
-        return _Points && _Parametrs;
+bool PathRedo(PArray *_Points) {
+        if ( _Points == NULL ) {
+                return 0;
+        }
+        
+        if ( last_action == NULL ) {
+                if ( actions != NULL ) {
+                        last_action = actions;
+                } else {
+                        return 0;
+                }
+        }  else {
+                if ( last_action->next ) {
+                        last_action = last_action->next;
+                } else {
+                        return 0;
+                }
+        }
+        
+        bool res;
+        switch ( last_action->type ) {
+                case DEL_POINT:
+                        res = _DelPoint(_Points);
+                        LogDebug("_DelPoint", "delete point %u->%u. reult: %i\n", last_action->prev_id, last_action->id, res);
+                        break;
+
+                case ADD_POINT:
+                        res = _RestorePoint(_Points);
+                        LogDebug("_RestorePoint", "restore point %u->%u. reult: %i\n", last_action->prev_id, last_action->id, res);
+                        break;
+                
+                case ADD_POINT_TO_START:
+                        res = _RestorePoint(_Points);
+                        LogDebug("_RestorePoint", "restore point %u->%u. reult: %i\n", last_action->prev_id, last_action->id, res);
+                        break;
+
+                case MOVE_POINT:
+                        res = _MoveForward(_Points);
+                        LogDebug("_MoveForward", "move point %u->%u. reult: %i\n", last_action->prev_id, last_action->id, res);
+                        break;
+
+                default:
+                        res = 0;
+                        break;
+                        
+        }
+
+        return res;
 }
 
 
@@ -176,7 +245,7 @@ bool PathAddAction(ACTION_TYPE _Type, Point *_Point, SDL_FPoint _Start_cord, dou
                 actions = new;
         }
         last_action = new;
-        printf("PathAddAction %u->%u\n", new->prev_id, new->id);
+        LogDebug("PathAddAction", "Added action %u->%u", new->prev_id, new->id);
         return 1;
 }
 

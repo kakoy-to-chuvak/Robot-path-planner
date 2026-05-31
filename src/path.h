@@ -100,7 +100,7 @@ void FreePoint(Point *_Point) ;
 void FreePoints(PArray *_Points);
 
 bool PathUndo(PArray *_Points);
-bool PathRedo(PArray *_Points, Parametrs *_Parametrs);
+bool PathRedo(PArray *_Points);
 bool PathAddAction(ACTION_TYPE _Type, Point *_Point, SDL_FPoint _Start_cord, double _Start_ang);
 void PathClearActions();
 void PathFreeAction(ACTION *_Action);
