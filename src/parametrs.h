@@ -51,12 +51,12 @@ typedef struct _Parametrs_struct_ {
         int monitor_w;
 
         SDL_FRect texture_box;
-        float box_width;
-        float box_height;
+        float field_width;
+        float field_height;
 
         bool invert_x;
         bool invert_y;
-        SDL_FPoint center;
+        SDL_FPoint field_cord_center;
 
         int point_radius;
         int point_diametr;

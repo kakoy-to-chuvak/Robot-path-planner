@@ -1,4 +1,4 @@
-#include "menu.h"
+#include "contextmenu.h"
 
 
 float fix_cord(float x, float w, float app_x) {
@@ -11,89 +11,89 @@ float fix_cord(float x, float w, float app_x) {
 
 
 // ==== Main functions ====
-MENU *Menu_New( SDL_Renderer *renderer, SDL_PixelFormat pixel_format,
+CONTEXTMENU *ContextMenu_New( SDL_Renderer *renderer, SDL_PixelFormat pixel_format,
                 SDL_Color background, float border_radius,
                 int32_t border, SDL_Color border_color ) 
 {
 
-        MENU *menu = malloc(sizeof(MENU));
-        if ( NULL == menu )
+        CONTEXTMENU *contextmenu = malloc(sizeof(CONTEXTMENU));
+        if ( NULL == contextmenu )
                 return NULL;
 
-        menu->h = 0;
-        menu->w = 0;
-        menu->x = 0;
-        menu->y = 0;
+        contextmenu->h = 0;
+        contextmenu->w = 0;
+        contextmenu->x = 0;
+        contextmenu->y = 0;
         
-        menu->bg_color = background;
-        menu->border_color = border_color;
-        menu->border_width = border;
-        menu->border_radius = border_radius;
+        contextmenu->bg_color = background;
+        contextmenu->border_color = border_color;
+        contextmenu->border_width = border;
+        contextmenu->border_radius = border_radius;
 
-        menu->renderer = renderer;
-        menu->active = 0;
-        menu->buttons = NULL;
-        menu->buttons_count = 0;
+        contextmenu->renderer = renderer;
+        contextmenu->active = 0;
+        contextmenu->buttons = NULL;
+        contextmenu->buttons_count = 0;
 
-        menu->button_h = 0;
-        menu->button_w = 0;
+        contextmenu->button_h = 0;
+        contextmenu->button_w = 0;
 
-        menu->button_indent_y = 0;
-        menu->button_indent_x = 0;
+        contextmenu->button_indent_y = 0;
+        contextmenu->button_indent_x = 0;
 
-        menu->text_indent_y = 0;
-        menu->text_indent_x = 0;
+        contextmenu->text_indent_y = 0;
+        contextmenu->text_indent_x = 0;
 
-        menu->button_radius = 0;
+        contextmenu->button_radius = 0;
 
-        menu->pixel_format = pixel_format;
-        Menu_CreateMenuTexture(menu);
-        menu->button_texture = NULL;
-        menu->trigger_texture = NULL;
+        contextmenu->pixel_format = pixel_format;
+        ContextMenu_CreateMenuTexture(contextmenu);
+        contextmenu->button_texture = NULL;
+        contextmenu->trigger_texture = NULL;
 
-        return menu;
+        return contextmenu;
 }
 
 
 
-void Menu_Move(MENU *menu, float x, float y, float window_w, float window_h) {
-        if ( menu == NULL ) 
+void ContextMenu_Move(CONTEXTMENU *contextmenu, float x, float y, float window_w, float window_h) {
+        if ( contextmenu == NULL ) 
                 return;
 
-        menu->x = fix_cord(x, menu->border_width + menu->w, window_w);
-        menu->y = fix_cord(y, menu->border_width + menu->h, window_h);
+        contextmenu->x = fix_cord(x, contextmenu->border_width + contextmenu->w, window_w);
+        contextmenu->y = fix_cord(y, contextmenu->border_width + contextmenu->h, window_h);
 }
 
 
 
-bool Menu_MouseOut(MENU *menu, int32_t mouse_x, int32_t mouse_y) {
-        return  mouse_x < menu->x - menu->border_width || 
-                mouse_y < menu->y - menu->border_width || 
-                mouse_x > menu->x + menu->w + menu->border_width || 
-                mouse_y > menu->y + menu->h + menu->border_width;
+bool ContextMenu_MouseOut(CONTEXTMENU *contextmenu, int32_t mouse_x, int32_t mouse_y) {
+        return  mouse_x < contextmenu->x - contextmenu->border_width || 
+                mouse_y < contextmenu->y - contextmenu->border_width || 
+                mouse_x > contextmenu->x + contextmenu->w + contextmenu->border_width || 
+                mouse_y > contextmenu->y + contextmenu->h + contextmenu->border_width;
 }
 
 
 
-bool Menu_CheckUpdate(MENU *menu, float mouse_x, float mouse_y, bool click, void *function_args) {
-        if ( NULL == menu || menu->active == 0 ) 
+bool ContextMenu_CheckUpdate(CONTEXTMENU *contextmenu, float mouse_x, float mouse_y, bool click, void *function_args) {
+        if ( NULL == contextmenu || contextmenu->active == 0 ) 
                 return 0;
         
         
         bool res = 0;
 
-        bool mouse_out_menu = Menu_MouseOut(menu, mouse_x, mouse_y);
+        bool mouse_out_menu = ContextMenu_MouseOut(contextmenu, mouse_x, mouse_y);
         if ( mouse_out_menu && click ) {
-                menu->active = 0;
+                contextmenu->active = 0;
                 res = 1;
         }
 
-        int32_t now_y = menu->y + menu->button_indent_y;
-        int32_t button_x = menu->x + menu->button_indent_x;
-        int32_t button_h = menu->button_h;
-        int32_t button_w = menu->button_w;
+        int32_t now_y = contextmenu->y + contextmenu->button_indent_y;
+        int32_t button_x = contextmenu->x + contextmenu->button_indent_x;
+        int32_t button_h = contextmenu->button_h;
+        int32_t button_w = contextmenu->button_w;
 
-        MENU_BUTTON *now = menu->buttons;
+        MENU_BUTTON *now = contextmenu->buttons;
         while ( now ) {
                 if ( mouse_out_menu || now->hide == 1 ) {
                         if ( now->triggered )
@@ -118,9 +118,9 @@ bool Menu_CheckUpdate(MENU *menu, float mouse_x, float mouse_y, bool click, void
                         if ( click ) {
                                 res = 1;
                                 if ( now->function ) {
-                                        now->function(menu, function_args);
+                                        now->function(contextmenu, function_args);
                                 }
-                                menu->active = 0;
+                                contextmenu->active = 0;
                         }
                 } else {
                         if ( now->triggered == 1 ) {
@@ -131,7 +131,7 @@ bool Menu_CheckUpdate(MENU *menu, float mouse_x, float mouse_y, bool click, void
 
                 next:
                 now = now->next;
-                now_y += menu->button_h;
+                now_y += contextmenu->button_h;
         }
 
         return res;
@@ -139,65 +139,65 @@ bool Menu_CheckUpdate(MENU *menu, float mouse_x, float mouse_y, bool click, void
 
 
 
-void Menu_Free(MENU *menu) {
-        if ( NULL == menu ) 
+void ContextMenu_Free(CONTEXTMENU *contextmenu) {
+        if ( NULL == contextmenu ) 
                 return;
 
-        MENU_BUTTON *now = menu->buttons;
+        MENU_BUTTON *now = contextmenu->buttons;
         while ( now ) {
                 MENU_BUTTON *tmp = now->next;
                 free(now);
                 now = tmp;
         }
 
-        free(menu);
+        free(contextmenu);
 }
 
 
 //  ==== Render function ====
-void Menu_Render(MENU *menu) {
-        if ( NULL == menu || menu->active == 0) 
+void ContextMenu_Render(CONTEXTMENU *contextmenu) {
+        if ( NULL == contextmenu || contextmenu->active == 0) 
                 return;
 
-        float x = menu->x;
-        float y = menu->y;
+        float x = contextmenu->x;
+        float y = contextmenu->y;
 
         SDL_FRect rect = (SDL_FRect){
                 x, 
                 y, 
-                menu->w + 2 * menu->border_width, 
-                menu->h  + 2 * menu->border_width
+                contextmenu->w + 2 * contextmenu->border_width, 
+                contextmenu->h  + 2 * contextmenu->border_width
         };
 
-        if ( menu->menu_texture )
-                SDL_RenderTexture(menu->renderer, menu->menu_texture, NULL, &rect);
+        if ( contextmenu->menu_texture )
+                SDL_RenderTexture(contextmenu->renderer, contextmenu->menu_texture, NULL, &rect);
 
-        MENU_BUTTON *now = menu->buttons;
-        rect.x += menu->button_indent_x + menu->border_width;
-        rect.y += menu->button_indent_y + menu->border_width;
-        rect.w = menu->button_w;
-        rect.h = menu->button_h;
+        MENU_BUTTON *now = contextmenu->buttons;
+        rect.x += contextmenu->button_indent_x + contextmenu->border_width;
+        rect.y += contextmenu->button_indent_y + contextmenu->border_width;
+        rect.w = contextmenu->button_w;
+        rect.h = contextmenu->button_h;
 
         SDL_FRect label_rect = (SDL_FRect){
-                rect.x + menu->text_indent_x,
-                rect.y + menu->text_indent_y,
+                rect.x + contextmenu->text_indent_x,
+                rect.y + contextmenu->text_indent_y,
                 0,
-                menu->button_h - 2 * menu->text_indent_y
+                contextmenu->button_h - 2 * contextmenu->text_indent_y
         };
 
         while ( now ) {
                 if ( now->hide )
                         goto next;
                 
-                SDL_RenderTexture(menu->renderer, now->triggered ? menu->trigger_texture : menu->button_texture, NULL, &rect);
+                SDL_RenderTexture(contextmenu->renderer, now->triggered ? contextmenu->trigger_texture : contextmenu->button_texture, NULL, &rect);
 
                 if ( now->label ) {
                         label_rect.w = label_rect.h * now->label->rect.w / now->label->rect.h;
                         Label_Draw(now->label, NULL, &label_rect);
                 } 
 
-                rect.y += menu->button_h;
-                label_rect.y += menu->button_h;
+                rect.y += contextmenu->button_h;
+                label_rect.y += contextmenu->button_h;
 
                 next:
                 now = now->next;
@@ -207,41 +207,41 @@ void Menu_Render(MENU *menu) {
 
 
 // ==== Menu buttons ====
-void Menu_SetupButtons( MENU *menu, float radius,
+void ContextMenu_SetupButtons( CONTEXTMENU *contextmenu, float radius,
                         int32_t width, int32_t height,
                         SDL_Color background, SDL_Color trigger_color,
                         int32_t indent_w, int32_t indent_h,
                         int32_t text_indent_w, int32_t text_indent_h) 
 {
-        if ( menu == NULL )
+        if ( contextmenu == NULL )
                 return;
 
-        menu->button_bg_color = background;
-        menu->trigger_color = trigger_color;
+        contextmenu->button_bg_color = background;
+        contextmenu->trigger_color = trigger_color;
         
-        menu->w = width + 2 * indent_w;
-        menu->h = menu->h - 2 * menu->button_indent_y + menu->buttons_count * ( height - menu->button_h )+ 2 * indent_h;
+        contextmenu->w = width + 2 * indent_w;
+        contextmenu->h = contextmenu->h - 2 * contextmenu->button_indent_y + contextmenu->buttons_count * ( height - contextmenu->button_h )+ 2 * indent_h;
 
-        menu->button_h = height;
-        menu->button_w = width;
+        contextmenu->button_h = height;
+        contextmenu->button_w = width;
 
 
-        menu->button_indent_y = indent_h;
-        menu->button_indent_x = indent_w;
+        contextmenu->button_indent_y = indent_h;
+        contextmenu->button_indent_x = indent_w;
 
-        menu->text_indent_y = text_indent_h;
-        menu->text_indent_x = text_indent_w;
+        contextmenu->text_indent_y = text_indent_h;
+        contextmenu->text_indent_x = text_indent_w;
 
-        menu->button_radius = radius;
+        contextmenu->button_radius = radius;
 
-        Menu_CreateMenuTexture(menu);
-        Menu_CreateButtonTexture(menu);
+        ContextMenu_CreateMenuTexture(contextmenu);
+        ContextMenu_CreateButtonTexture(contextmenu);
 
 }
 
 
 
-MENU_BUTTON *Menu_SetButton(    MENU *menu, 
+MENU_BUTTON *ContextMenu_SetButton(    CONTEXTMENU *contextmenu, 
                                 int id,
                                 LABEL *label,
                                 bool hide,
@@ -249,22 +249,22 @@ MENU_BUTTON *Menu_SetButton(    MENU *menu,
                                 void* (*function)(void*, void*) 
                         )
 {       
-        MENU_BUTTON *button = Menu_GetButton(menu, id);
+        MENU_BUTTON *button = ContextMenu_GetButton(contextmenu, id);
 
         if ( button == NULL) {
                 button = malloc(sizeof(MENU_BUTTON));
                 if ( button == NULL)
                         return NULL;
                         
-                if ( menu->buttons ) 
-                        menu->buttons->prev = button;
+                if ( contextmenu->buttons ) 
+                        contextmenu->buttons->prev = button;
                 button->prev = NULL;
-                button->next = menu->buttons;
-                menu->buttons = button;
+                button->next = contextmenu->buttons;
+                contextmenu->buttons = button;
 
                 button->id = id;
-                menu->buttons_count++;
-                menu->h += menu->button_h;
+                contextmenu->buttons_count++;
+                contextmenu->h += contextmenu->button_h;
         }
         
         button->triggered = 0;
@@ -274,15 +274,15 @@ MENU_BUTTON *Menu_SetButton(    MENU *menu,
         button->function = function;
         button->label = label;  
 
-        Menu_CreateMenuTexture(menu);
+        ContextMenu_CreateMenuTexture(contextmenu);
 
         return button;
 }
 
 
 
-MENU_BUTTON *Menu_GetButton(MENU *menu, int id) {
-        MENU_BUTTON *now = menu->buttons;
+MENU_BUTTON *ContextMenu_GetButton(CONTEXTMENU *contextmenu, int id) {
+        MENU_BUTTON *now = contextmenu->buttons;
         while ( now ) {
                 if ( now->id == id )
                         return now;
@@ -294,20 +294,20 @@ MENU_BUTTON *Menu_GetButton(MENU *menu, int id) {
 
 
 
-bool Menu_DelButton(MENU *menu, MENU_BUTTON *button) {
-        if ( NULL == menu || NULL == button ) 
+bool ContextMenu_DelButton(CONTEXTMENU *contextmenu, MENU_BUTTON *button) {
+        if ( NULL == contextmenu || NULL == button ) 
                 return 0;
         
         if ( button->prev )
                 button->prev->next = button->next;
         else 
-                menu->buttons = button->next;
+                contextmenu->buttons = button->next;
 
         if ( button->next )
                 button->next->prev = button->prev;
 
-        menu->buttons_count--;
-        menu->h -= menu->button_h;
+        contextmenu->buttons_count--;
+        contextmenu->h -= contextmenu->button_h;
 
         free(button);
 
@@ -316,16 +316,16 @@ bool Menu_DelButton(MENU *menu, MENU_BUTTON *button) {
 
 
 
-void Menu_HideButton(MENU *menu, MENU_BUTTON *button, bool hide) {
+void ContextMenu_HideButton(CONTEXTMENU *contextmenu, MENU_BUTTON *button, bool hide) {
         if ( button == NULL )
                 return;
 
         if ( button->hide == 0 && hide == 1 ) {
-                menu->buttons_count--;
-                menu->h -= menu->button_h;
+                contextmenu->buttons_count--;
+                contextmenu->h -= contextmenu->button_h;
         } else if ( button->hide == 1 && hide == 0 ) {
-                menu->buttons_count++;
-                menu->h += menu->button_h;
+                contextmenu->buttons_count++;
+                contextmenu->h += contextmenu->button_h;
         }
 
         button->hide = hide;
@@ -348,7 +348,7 @@ void __Surface_DrawStraightLine(SDL_Surface *surf, int32_t x, int32_t y, int32_t
 
 
 
-void __Menu_FillSurfaceBorder(SDL_Surface *surf, Uint32 w, Uint32 h, int32_t border_width, int32_t radius, Uint32 color) {
+void __ContextMenu_FillSurfaceBorder(SDL_Surface *surf, Uint32 w, Uint32 h, int32_t border_width, int32_t radius, Uint32 color) {
         SDL_Rect now_rect = {
                 0,
                 radius,
@@ -431,7 +431,7 @@ void __Menu_FillSurfaceBorder(SDL_Surface *surf, Uint32 w, Uint32 h, int32_t bor
 
 
 
-void __Menu_SurfaceFillRect(SDL_Surface *surf, SDL_Rect rect, int32_t radius, Uint32 color) {
+void __ContextMenu_SurfaceFillRect(SDL_Surface *surf, SDL_Rect rect, int32_t radius, Uint32 color) {
         SDL_Rect now_rect = {
                 rect.x,
                 rect.y + radius,
@@ -475,72 +475,72 @@ void __Menu_SurfaceFillRect(SDL_Surface *surf, SDL_Rect rect, int32_t radius, Ui
 
 
 
-SDL_Texture *Menu_CreateMenuTexture(MENU *menu) {
-        if ( menu == NULL ) 
+SDL_Texture *ContextMenu_CreateMenuTexture(CONTEXTMENU *contextmenu) {
+        if ( contextmenu == NULL ) 
                 return NULL;
       
-        SDL_Surface *surf = SDL_CreateSurface(menu->w + 2 * menu->border_width, menu->h + 2 * menu->border_width, menu->pixel_format);
+        SDL_Surface *surf = SDL_CreateSurface(contextmenu->w + 2 * contextmenu->border_width, contextmenu->h + 2 * contextmenu->border_width, contextmenu->pixel_format);
         if ( surf == NULL )
                 return NULL;
 
-        Uint32 color = SDL_MapRGBA(SDL_GetPixelFormatDetails(menu->pixel_format), NULL, menu->border_color.r, menu->border_color.g, menu->border_color.b, menu->border_color.a);
+        Uint32 color = SDL_MapRGBA(SDL_GetPixelFormatDetails(contextmenu->pixel_format), NULL, contextmenu->border_color.r, contextmenu->border_color.g, contextmenu->border_color.b, contextmenu->border_color.a);
         
-        if ( menu->border_width )
-                __Menu_FillSurfaceBorder(surf, menu->w + 2 * menu->border_width, menu->h + 2 * menu->border_width, menu->border_width, menu->border_radius, color);
+        if ( contextmenu->border_width )
+                __ContextMenu_FillSurfaceBorder(surf, contextmenu->w + 2 * contextmenu->border_width, contextmenu->h + 2 * contextmenu->border_width, contextmenu->border_width, contextmenu->border_radius, color);
         
         SDL_Rect tmp = (SDL_Rect){
-                menu->border_width,
-                menu->border_width,
-                menu->w,
-                menu->h
+                contextmenu->border_width,
+                contextmenu->border_width,
+                contextmenu->w,
+                contextmenu->h
         };
 
-        color = SDL_MapRGBA(SDL_GetPixelFormatDetails(menu->pixel_format), NULL, menu->bg_color.r, menu->bg_color.g, menu->bg_color.b, menu->bg_color.a);
+        color = SDL_MapRGBA(SDL_GetPixelFormatDetails(contextmenu->pixel_format), NULL, contextmenu->bg_color.r, contextmenu->bg_color.g, contextmenu->bg_color.b, contextmenu->bg_color.a);
 
-        __Menu_SurfaceFillRect(surf, tmp, menu->border_radius, color);
+        __ContextMenu_SurfaceFillRect(surf, tmp, contextmenu->border_radius, color);
 
-        menu->menu_texture = SDL_CreateTextureFromSurface(menu->renderer, surf);
+        contextmenu->menu_texture = SDL_CreateTextureFromSurface(contextmenu->renderer, surf);
 
         SDL_DestroySurface(surf);
 
-        return menu->menu_texture;
+        return contextmenu->menu_texture;
 }
 
 
-bool Menu_CreateButtonTexture(MENU *menu) {
-        if ( menu == NULL )
+bool ContextMenu_CreateButtonTexture(CONTEXTMENU *contextmenu) {
+        if ( contextmenu == NULL )
                 return NULL;
 
-        SDL_Surface *surf = SDL_CreateSurface(menu->button_w, menu->button_h, menu->pixel_format);
+        SDL_Surface *surf = SDL_CreateSurface(contextmenu->button_w, contextmenu->button_h, contextmenu->pixel_format);
         if ( surf == NULL )
                 return NULL;
 
         SDL_Rect rect = (SDL_Rect){
                 0,
                 0,
-                menu->button_w,
-                menu->button_h
+                contextmenu->button_w,
+                contextmenu->button_h
         };
 
         // button texture
-        Uint32 color = SDL_MapRGBA( SDL_GetPixelFormatDetails(menu->pixel_format), NULL, 
-                                    menu->button_bg_color.r, menu->button_bg_color.g, 
-                                    menu->button_bg_color.b, menu->button_bg_color.a);
+        Uint32 color = SDL_MapRGBA( SDL_GetPixelFormatDetails(contextmenu->pixel_format), NULL, 
+                                    contextmenu->button_bg_color.r, contextmenu->button_bg_color.g, 
+                                    contextmenu->button_bg_color.b, contextmenu->button_bg_color.a);
 
-        __Menu_SurfaceFillRect(surf, rect, menu->button_radius, color);
+        __ContextMenu_SurfaceFillRect(surf, rect, contextmenu->button_radius, color);
 
-        menu->button_texture = SDL_CreateTextureFromSurface(menu->renderer, surf);
+        contextmenu->button_texture = SDL_CreateTextureFromSurface(contextmenu->renderer, surf);
 
         // trigger texture
-        color = SDL_MapRGBA( SDL_GetPixelFormatDetails(menu->pixel_format), NULL, 
-                             menu->trigger_color.r, menu->trigger_color.g, 
-                             menu->trigger_color.b, menu->trigger_color.a);
+        color = SDL_MapRGBA( SDL_GetPixelFormatDetails(contextmenu->pixel_format), NULL, 
+                             contextmenu->trigger_color.r, contextmenu->trigger_color.g, 
+                             contextmenu->trigger_color.b, contextmenu->trigger_color.a);
 
-        __Menu_SurfaceFillRect(surf, rect, menu->button_radius, color);
+        __ContextMenu_SurfaceFillRect(surf, rect, contextmenu->button_radius, color);
 
-        menu->trigger_texture = SDL_CreateTextureFromSurface(menu->renderer, surf);
+        contextmenu->trigger_texture = SDL_CreateTextureFromSurface(contextmenu->renderer, surf);
 
         SDL_DestroySurface(surf);
 
-        return menu->button_texture && menu->trigger_texture;
+        return contextmenu->button_texture && contextmenu->trigger_texture;
 }

@@ -35,13 +35,13 @@ void ParametrsInit(Parametrs *_Parametrs, SDL_Window *_Window) {
                 0, 0, 0, 0
         };
 
-        _Parametrs->box_width = BOX_WIDTH;
-        _Parametrs->box_height = BOX_HEIGHT;
+        _Parametrs->field_width = BOX_WIDTH;
+        _Parametrs->field_height = BOX_HEIGHT;
         _Parametrs->invert_x = 0;
         _Parametrs->invert_y = 1;
-        _Parametrs->center = (SDL_FPoint){
-                BOX_WIDTH / 2.0,
-                BOX_HEIGHT / 2.0
+        _Parametrs->field_cord_center = (SDL_FPoint){
+                _Parametrs->field_width / 2.0,
+                _Parametrs->field_height / 2.0
         };
 
         ParametrsFixValues(_Parametrs, _Window);
@@ -70,7 +70,7 @@ void ParametrsFixValues(Parametrs *_Parametrs, SDL_Window *_Window) {
         
         float k;
         if ( _Parametrs->texture_box.h && _Parametrs->texture_box.w ) {
-                k = _Parametrs->box_width / _Parametrs->texture_box.w;
+                k = _Parametrs->field_width / _Parametrs->texture_box.w;
         } else {
                 k = 0.0f;
         }
@@ -84,18 +84,14 @@ void ParametrsFixValues(Parametrs *_Parametrs, SDL_Window *_Window) {
 
 
 void ResizeBgTexture(Parametrs *_Parametrs) {
-        float k = _Parametrs->box_width / _Parametrs->box_height;
+        float k = _Parametrs->field_width / _Parametrs->field_height;
         
         // resize background texture
         if ( ((float)_Parametrs->window_w) / ((float)_Parametrs->window_h) > k ) {
                 _Parametrs->texture_box.w = _Parametrs->window_h * k;
                 _Parametrs->texture_box.h = _Parametrs->window_h;
-                _Parametrs->texture_box.y = 0;
-                _Parametrs->texture_box.x = ( _Parametrs->window_w - _Parametrs->texture_box.w ) / 2;
         } else {
                 _Parametrs->texture_box.h = _Parametrs->window_w / k;
                 _Parametrs->texture_box.w = _Parametrs->window_w;
-                _Parametrs->texture_box.x = 0;
-                _Parametrs->texture_box.y = ( _Parametrs->window_h - _Parametrs->texture_box.h ) / 2;
         }
 }

@@ -31,7 +31,7 @@ typedef struct MENU_BUTTON {
 } MENU_BUTTON; 
 
 
-typedef struct MENU {
+typedef struct CONTEXTMENU {
         SDL_Renderer *renderer;
 
         SDL_PixelFormat pixel_format;
@@ -66,22 +66,22 @@ typedef struct MENU {
         int32_t button_indent_x;
         int32_t button_indent_y;
         float button_radius;
-} MENU;
+} CONTEXTMENU;
 
 
-MENU *Menu_New( SDL_Renderer *renderer, SDL_PixelFormat pixel_format,
+CONTEXTMENU *ContextMenu_New( SDL_Renderer *renderer, SDL_PixelFormat pixel_format,
                 SDL_Color background, float border_radius,
                 int32_t border, SDL_Color border_color );
-void Menu_Move(MENU *menu, float x, float y, float window_w, float window_h);
-bool Menu_MouseOut(MENU *menu, int32_t mouse_x, int32_t mouse_y);
-bool Menu_CheckUpdate(MENU *menu, float mouse_x, float mouse_y, bool click, void *function_args);
-void Menu_Free(MENU *menu);
+void ContextMenu_Move(CONTEXTMENU *menu, float x, float y, float window_w, float window_h);
+bool ContextMenu_MouseOut(CONTEXTMENU *menu, int32_t mouse_x, int32_t mouse_y);
+bool ContextMenu_CheckUpdate(CONTEXTMENU *menu, float mouse_x, float mouse_y, bool click, void *function_args);
+void ContextMenu_Free(CONTEXTMENU *menu);
 
 
-void Menu_Render(MENU *menu);
+void ContextMenu_Render(CONTEXTMENU *menu);
 
 
-void Menu_SetupButtons( MENU *menu, float radius,
+void ContextMenu_SetupButtons( CONTEXTMENU *menu, float radius,
                         int32_t width, int32_t height,
                         SDL_Color background, SDL_Color trigger_color,
                         int32_t indent_w, int32_t indent_h,
@@ -89,20 +89,20 @@ void Menu_SetupButtons( MENU *menu, float radius,
                 
 
 
-MENU_BUTTON *Menu_SetButton(    MENU *menu, 
+MENU_BUTTON *ContextMenu_SetButton(    CONTEXTMENU *menu, 
                                 int id,
                                 LABEL *label,
                                 bool hide,
                                 bool active,
                                 void* (*function)(void*, void*) );
 
-MENU_BUTTON *Menu_GetButton(MENU *menu, int id);
-bool Menu_DelButton(MENU *menu, MENU_BUTTON *button);
-void Menu_HideButton(MENU *menu, MENU_BUTTON *button, bool hide);
+MENU_BUTTON *ContextMenu_GetButton(CONTEXTMENU *menu, int id);
+bool ContextMenu_DelButton(CONTEXTMENU *menu, MENU_BUTTON *button);
+void ContextMenu_HideButton(CONTEXTMENU *menu, MENU_BUTTON *button, bool hide);
 
 
-SDL_Texture *Menu_CreateMenuTexture(MENU *menu);
-bool Menu_CreateButtonTexture(MENU *menu);
+SDL_Texture *ContextMenu_CreateMenuTexture(CONTEXTMENU *menu);
+bool ContextMenu_CreateButtonTexture(CONTEXTMENU *menu);
 
 
 #endif // __MENU_H__

@@ -1,5 +1,3 @@
 build/*.*
-build/fonts/*.ttf
-
 .vscode/*
 ideas.txt

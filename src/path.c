@@ -17,7 +17,7 @@ double Safe_Angle(SDL_FPoint vec) {
                 } else if ( cos_a > 1 ) {
                         return 0; 
                 }
-                return -acos( cos_a ) * SGN(vec.y);
+                return acos( cos_a ) * SGN(vec.y);
         }
         return 0;
 }
@@ -26,35 +26,35 @@ SDL_FPoint WindowCordsToBox(SDL_FPoint cords, Parametrs *_Parameters) {
         cords.x -= _Parameters->texture_box.x;
         cords.y -= _Parameters->texture_box.y;
 
-        cords.x *= _Parameters->box_width / _Parameters->texture_box.w;
-        cords.y *= _Parameters->box_height / _Parameters->texture_box.h;
+        cords.x *= _Parameters->field_width / _Parameters->texture_box.w;
+        cords.y *= _Parameters->field_height / _Parameters->texture_box.h;
 
         if ( _Parameters->invert_x ) {
-                cords.x = _Parameters->box_width - cords.x;
+                cords.x = _Parameters->field_width - cords.x;
         }
         if ( _Parameters->invert_y ) {
-                cords.y = _Parameters->box_height - cords.y;
+                cords.y = _Parameters->field_height - cords.y;
         }
 
-        cords.x -= _Parameters->center.x;
-        cords.y -= _Parameters->center.y;
+        cords.x -= _Parameters->field_cord_center.x;
+        cords.y -= _Parameters->field_cord_center.y;
 
         return cords;
 }
 
 SDL_FPoint BoxCordsToWindow(SDL_FPoint cords, Parametrs *_Parameters) {
-        cords.x += _Parameters->center.x;
-        cords.y += _Parameters->center.y;
+        cords.x += _Parameters->field_cord_center.x;
+        cords.y += _Parameters->field_cord_center.y;
 
         if ( _Parameters->invert_x ) {
-                cords.x = _Parameters->box_width - cords.x;
+                cords.x = _Parameters->field_width - cords.x;
         }
         if ( _Parameters->invert_y ) {
-                cords.y = _Parameters->box_height - cords.y;
+                cords.y = _Parameters->field_height - cords.y;
         }
 
-        cords.x *= _Parameters->texture_box.w / _Parameters->box_width;
-        cords.y *= _Parameters->texture_box.h / _Parameters->box_height;
+        cords.x *= _Parameters->texture_box.w / _Parameters->field_width;
+        cords.y *= _Parameters->texture_box.h / _Parameters->field_height;
         
         cords.x += _Parameters->texture_box.x;
         cords.y += _Parameters->texture_box.y;
@@ -108,7 +108,7 @@ void _RenderPoint(SDL_Renderer *renderer, Point *point, SDL_Texture *point_textu
 
         SDL_FPoint angle_vector = {_Parameters->dir_vector_legth, 0.0};
         angle_vector = Vector_Rotate(angle_vector, point->angle);
-        if ( _Parameters->invert_y )
+        if ( !_Parameters->invert_y )
                 angle_vector.y = -angle_vector.y;
         if ( _Parameters->invert_x )
                 angle_vector.x = -angle_vector.x;
@@ -238,16 +238,16 @@ void MovePoint( Point *point, SDL_FPoint pos, Parametrs *_Parameters ) {
         }
 
         // fix cords
-        if ( pos.x < -_Parameters->center.x )
-                pos.x = -_Parameters->center.x;
-        else if ( pos.x > _Parameters->box_width - _Parameters->center.x )
-                pos.x = _Parameters->box_width - _Parameters->center.x;
+        if ( pos.x < -_Parameters->field_cord_center.x )
+                pos.x = -_Parameters->field_cord_center.x;
+        else if ( pos.x > _Parameters->field_width - _Parameters->field_cord_center.x )
+                pos.x = _Parameters->field_width - _Parameters->field_cord_center.x;
 
 
-        if ( pos.y < -_Parameters->center.y )
-                pos.y = -_Parameters->center.y;
-        else if ( pos.y > _Parameters->box_height - _Parameters->center.y )
-                pos.y = _Parameters->box_height - _Parameters->center.y;
+        if ( pos.y < -_Parameters->field_cord_center.y )
+                pos.y = -_Parameters->field_cord_center.y;
+        else if ( pos.y > _Parameters->field_height - _Parameters->field_cord_center.y )
+                pos.y = _Parameters->field_height - _Parameters->field_cord_center.y;
 
 
         point->cords = pos;
@@ -324,6 +324,7 @@ bool CheckPoint(PArray *points, Point *point, SDL_FPoint mouse_pos, Parametrs *_
 
 bool _TouchVector(SDL_FPoint _Start, SDL_FPoint _Mouse_pos, float angle, Parametrs *_Parameters ) {
         SDL_FPoint _End = Vector_Rotate( (SDL_FPoint){_Parameters->fixed_dir_vector_legth, 0}, angle);
+        _End.y = -_End.y;
         _End = Vector_Sum(_Start, _End);
         return _TouchLine(_Start, _End, _Mouse_pos, _Parameters->fixed_dir_vector_width, 0);
 }
@@ -355,7 +356,7 @@ bool CheckVector(PArray *points, Point *point, SDL_FPoint mouse_pos, Parametrs *
 void MoveVector(Point *point, SDL_FPoint mouse_pos, Parametrs *_Parameters ) {
         SDL_FPoint Dv = Vector_Sub(mouse_pos, point->cords);
         point->angle = Safe_Angle(Dv);
-        printf("{%f;%f} %f\n", Dv.x, Dv.y, point->angle);
+        // printf("{%f;%f} %f\n", Dv.x, Dv.y, point->angle);
 
         if ( _Parameters->alt_pressed && _Parameters->ctrl_pressed && point->next ) {
                 Dv = Vector_Sub(point->next->cords, point->cords);
@@ -483,16 +484,16 @@ Point * AddPoint(PArray *points, SDL_FPoint cords, float *angle, Point *line, Us
         }
 
         // fix cords
-        if ( cords.x < -_Parameters->center.x )
-                cords.x = -_Parameters->center.x;
-        else if ( cords.x > _Parameters->box_width - _Parameters->center.x )
-                cords.x = _Parameters->box_width - _Parameters->center.x;
+        if ( cords.x < -_Parameters->field_cord_center.x )
+                cords.x = -_Parameters->field_cord_center.x;
+        else if ( cords.x > _Parameters->field_width - _Parameters->field_cord_center.x )
+                cords.x = _Parameters->field_width - _Parameters->field_cord_center.x;
 
 
-        if ( cords.y < -_Parameters->center.y )
-                cords.y = -_Parameters->center.y;
-        else if ( cords.y > _Parameters->box_height - _Parameters->center.y )
-                cords.y = _Parameters->box_height - _Parameters->center.y;
+        if ( cords.y < -_Parameters->field_cord_center.y )
+                cords.y = -_Parameters->field_cord_center.y;
+        else if ( cords.y > _Parameters->field_height - _Parameters->field_cord_center.y )
+                cords.y = _Parameters->field_height - _Parameters->field_cord_center.y;
 
         *new = (Point){
                 cords,
@@ -569,16 +570,16 @@ Point *AddPoint_tostart(PArray *points, SDL_FPoint cords, float angle, UserField
         }
 
         // fix cords
-        if ( cords.x < -_Parameters->center.x )
-                cords.x = -_Parameters->center.x;
-        else if ( cords.x > _Parameters->box_width - _Parameters->center.x )
-                cords.x = _Parameters->box_width - _Parameters->center.x;
+        if ( cords.x < -_Parameters->field_cord_center.x )
+                cords.x = -_Parameters->field_cord_center.x;
+        else if ( cords.x > _Parameters->field_width - _Parameters->field_cord_center.x )
+                cords.x = _Parameters->field_width - _Parameters->field_cord_center.x;
 
 
-        if ( cords.y < -_Parameters->center.y )
-                cords.y = -_Parameters->center.y;
-        else if ( cords.y > _Parameters->box_height - _Parameters->center.y )
-                cords.y = _Parameters->box_height - _Parameters->center.y;
+        if ( cords.y < -_Parameters->field_cord_center.y )
+                cords.y = -_Parameters->field_cord_center.y;
+        else if ( cords.y > _Parameters->field_height - _Parameters->field_cord_center.y )
+                cords.y = _Parameters->field_height - _Parameters->field_cord_center.y;
                 
         *new = (Point){
                 cords,

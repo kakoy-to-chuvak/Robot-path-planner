@@ -17,7 +17,7 @@
 #include "drawing.h"
 #include "vectors.h"
 #include "path.h"
-#include "menu.h"
+#include "contextmenu.h"
 #include "filesave.h"
 #include "crossplatform.h"
 
@@ -26,7 +26,7 @@
 APP *app;
 LABEL *point_text;
 
-MENU *menu;
+CONTEXTMENU *contextmenu;
 LABEL *menu_labels[3];
 MENU_BUTTON *menu_buttons[3];
 
@@ -52,8 +52,8 @@ struct menu_args {
 };
 
 
-// menu buttons functions
-void *Menu_AddPoint(void *menu, void *args_vpointer) {
+// contextmenu buttons functions
+void *Menu_AddPoint(void *contextmenu, void *args_vpointer) {
         // get args
         struct menu_args args = *((struct menu_args*)args_vpointer);
         SDL_FPoint cords = WindowCordsToBox(args.cords, &parametrs);
@@ -62,10 +62,10 @@ void *Menu_AddPoint(void *menu, void *args_vpointer) {
         AddPoint(&points, cords, NULL, args.point, NULL, &parametrs);
 
         // useless return
-        return menu;
+        return contextmenu;
 }
 
-void *Menu_DelPoint(void *menu, void *args_vpointer) {
+void *Menu_DelPoint(void *contextmenu, void *args_vpointer) {
         // get args
         struct menu_args args = *((struct menu_args*)args_vpointer);
         if ( args.point ) {
@@ -74,10 +74,10 @@ void *Menu_DelPoint(void *menu, void *args_vpointer) {
         }
 
         // useless return
-        return menu;
+        return contextmenu;
 }
 
-void *Menu_AddPointToStart(void *menu, void *args_vpointer) {
+void *Menu_AddPointToStart(void *contextmenu, void *args_vpointer) {
         // get args
         struct menu_args args = *((struct menu_args*)args_vpointer);
 
@@ -88,7 +88,7 @@ void *Menu_AddPointToStart(void *menu, void *args_vpointer) {
         AddPoint_tostart(&points, cords, 0, NULL, &parametrs);
 
         // useless return
-        return menu;
+        return contextmenu;
 }
 
 
@@ -106,8 +106,8 @@ int render(APP *app) {
         // render points, lines and vectors
         RenderPath(app->Renderer, point_texture, &points, point_text, &parametrs);
 
-        // render context menu
-        Menu_Render(menu);
+        // render context contextmenu
+        ContextMenu_Render(contextmenu);
 
         // present render
         SDL_RenderPresent(app->Renderer);
@@ -162,43 +162,43 @@ int setup(APP *app) {
 
 
         // ==== Menu ====
-        // create labels for menu buttons
-        LogDebug("setup", "Label_New: creatng menu label [0]" );
+        // create labels for contextmenu buttons
+        LogDebug("setup", "Label_New: creatng contextmenu label [0]" );
         menu_labels[0] = Label_New(app->Renderer, "fonts/" MENU_TEXT_FONT, "Add point", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
                 return 0;
         }
         
-        LogDebug("setup", "Label_New: creatng menu label [1]" );
+        LogDebug("setup", "Label_New: creatng contextmenu label [1]" );
         menu_labels[1] = Label_New(app->Renderer, "fonts/" MENU_TEXT_FONT, "Add point to start", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
                 return 0;
         }
 
-        LogDebug("setup", "Label_New: creatng menu label [2]" );
+        LogDebug("setup", "Label_New: creatng contextmenu label [2]" );
         menu_labels[2] = Label_New(app->Renderer, "fonts/" MENU_TEXT_FONT, "Delete point", 60, TEXT_COLOR_White, 0, LABEL_VOID_PARAMS);
         if ( NULL == point_text ) {
                 LogError("setup", "Label_New failed");
                 return 0;
         }
 
-        // create context menu
-        LogDebug("setup", "Menu_New: create menu: [menu]" );
-        menu = Menu_New(app->Renderer, SDL_PIXELFORMAT_RGBA32,
+        // create context contextmenu
+        LogDebug("setup", "Menu_New: create contextmenu: [contextmenu]" );
+        contextmenu = ContextMenu_New(app->Renderer, SDL_PIXELFORMAT_RGBA32,
                 MENU_BG, 5, 0, MENU_BORDER_COLOR);
-        if ( NULL == menu ) {
+        if ( NULL == contextmenu ) {
                 LogError("setup", "Menu_New failed");
                 return 0;
         }
 
-        // create menu buttons
-        LogDebug("setup", "Menu_SetupButtons & Menu_SetButton: setup menu buttons");
-        Menu_SetupButtons(menu, 6, 170, 30, MENU_BG, MENU_TRIGGER_COLOR, 4, 4, 5, 6);
-        menu_buttons[2] = Menu_SetButton(menu, 2, menu_labels[2], 0, 1, Menu_DelPoint); 
-        menu_buttons[1] = Menu_SetButton(menu, 1, menu_labels[1], 0, 1, Menu_AddPointToStart); 
-        menu_buttons[0] = Menu_SetButton(menu, 0, menu_labels[0], 0, 1, Menu_AddPoint); 
+        // create contextmenu buttons
+        LogDebug("setup", "Menu_SetupButtons & Menu_SetButton: setup contextmenu buttons");
+        ContextMenu_SetupButtons(contextmenu, 6, 170, 30, MENU_BG, MENU_TRIGGER_COLOR, 4, 4, 5, 6);
+        menu_buttons[2] = ContextMenu_SetButton(contextmenu, 2, menu_labels[2], 0, 1, Menu_DelPoint); 
+        menu_buttons[1] = ContextMenu_SetButton(contextmenu, 1, menu_labels[1], 0, 1, Menu_AddPointToStart); 
+        menu_buttons[0] = ContextMenu_SetButton(contextmenu, 0, menu_labels[0], 0, 1, Menu_AddPoint); 
         
         // fix render
         SDL_SetRenderDrawBlendMode(app->Renderer, SDL_BLENDMODE_BLEND);
@@ -356,13 +356,13 @@ int Tick(APP *app) {
         bool lmb_clicked = parametrs.lmb_pressed == 0 && parametrs.prev_lmb_state;
         bool rmb_clicked = parametrs.rmb_pressed == 0 && parametrs.prev_rmb_state;
         
-        // check menu activation
-        if ( rmb_clicked && ( menu->active == 0 || Menu_MouseOut(menu, mouse_pos.x, mouse_pos.y) ) ) {
+        // check contextmenu activation
+        if ( rmb_clicked && ( contextmenu->active == 0 || ContextMenu_MouseOut(contextmenu, mouse_pos.x, mouse_pos.y) ) ) {
                 args.cords = mouse_pos;
 
-                // activate menu
-                Menu_Move(menu, mouse_pos.x, mouse_pos.y, parametrs.window_w, parametrs.window_h);
-                menu->active = 1;
+                // activate contextmenu
+                ContextMenu_Move(contextmenu, mouse_pos.x, mouse_pos.y, parametrs.window_w, parametrs.window_h);
+                contextmenu->active = 1;
                 points.changed = 1;
 
                 args.point = points.selected_point;
@@ -377,8 +377,8 @@ int Tick(APP *app) {
                 }
         }
 
-        // check menu changes
-        points.changed |= Menu_CheckUpdate(menu, mouse_pos.x, mouse_pos.y, lmb_clicked | rmb_clicked, &args);
+        // check contextmenu changes
+        points.changed |= ContextMenu_CheckUpdate(contextmenu, mouse_pos.x, mouse_pos.y, lmb_clicked | rmb_clicked, &args);
 
         // render if something has changed
         if ( points.changed ) {
@@ -466,7 +466,7 @@ int main( int argc, char *argv[] ) {
         
         Label_Free(point_text);
 
-        Menu_Free(menu);
+        ContextMenu_Free(contextmenu);
         Label_Free(menu_labels[0]);
         Label_Free(menu_labels[1]);
         Label_Free(menu_labels[2]);
