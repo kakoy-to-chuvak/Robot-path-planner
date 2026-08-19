@@ -25,7 +25,8 @@ endif
 	gcc 	$(SRCS) \
 		-o "$(BUILD_DIR)/$(TARGET_EXEC)" \
 		-L $(SDL_LIBS_DIR) -I $(SDL_INCLUDE_DIR) $(SDL_L_ARGS) \
-		-Wno-alloc-size \
+		-O3 \
+		-Wno-alloc-size -Wno-unused-parameter \
 		-Wall -Wextra -Werror
 	@echo -------------------
 

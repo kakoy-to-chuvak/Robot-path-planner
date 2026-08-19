@@ -61,8 +61,9 @@ void FreeToken(Token *_Token) {
 
 void FreeTokens(Token *_Tokens) {
         while ( _Tokens ) {
+                Token *tmp = _Tokens->next;
                 FreeToken(_Tokens);
-                _Tokens = _Tokens->next;
+                _Tokens = tmp;
         }
 }
 
